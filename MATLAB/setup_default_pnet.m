@@ -1,7 +1,7 @@
 function net = setup_default_pnet(nHidden, varargin)
-%SETUP_DEFAULT_PNET creates a patternnet with default settings
+%SETUP_DEFAULT_PNET creates a feedforwardnet with default settings
 %
-% NET = setup_default_pnet(NHIDDEN) creates a patternnet NET with NHIDDEN
+% NET = setup_default_pnet(NHIDDEN) creates a feedforwardnet NET with NHIDDEN
 % hidden neurons with predefined settings (from here on referred to as
 % default) that differ from the MATLAB default. 
 %
@@ -16,7 +16,7 @@ if ~isempty(varargin)
 end
 % COULDDO: check nHidden for some properties (e.g. only 1-dim matrix, ...)
 
-tmpnet = patternnet(nHidden);
+tmpnet = feedforwardnet(nHidden);
 
 tmpnet.divideMode = 'sample'; % at the moment no clear explanation of this can be found! should work however
 tmpnet.divideFcn = 'dividerand'; % divide data randomly
