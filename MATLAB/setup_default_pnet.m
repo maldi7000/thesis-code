@@ -1,5 +1,5 @@
 function net = setup_default_pnet(nHidden, varargin)
-%SETUP_DEFAUTL_PNET creates a patternnet with default settings
+%SETUP_DEFAULT_PNET creates a patternnet with default settings
 %
 % NET = setup_default_pnet(NHIDDEN) creates a patternnet NET with NHIDDEN
 % hidden neurons with predefined settings (from here on referred to as
