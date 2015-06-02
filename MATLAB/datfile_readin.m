@@ -46,6 +46,9 @@ files=dir(filename); % expand wildcard and get all files
 if isempty(files)
     error('Found no file matching: %s', filename)
 end
+if length(files) == 1 % if there is only one file do not put the values into a cell
+    concat = true;
+end
 
 if ~concat
     x = cell(size(files)); % pre allocate cell
