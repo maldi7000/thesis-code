@@ -12,6 +12,8 @@ function [Z] = decorrelate(X, varargin)
 
 % by Thomas Madlener, 2015
 
+% TODO: input check of X
+
 if ~isempty(varargin)
     validateattributes(varargin{1}, {'logical'}, {'nonnan'}, 'decorrelate', 'normalize');
     normalize = varargin{1};
