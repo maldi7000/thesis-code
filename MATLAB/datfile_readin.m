@@ -7,8 +7,8 @@ function [x] = datfile_readin(filename, format, varargin)
 % columns in the .dat file and M is the number of lines in the .dat file.
 % The FILENAME can contain wildcards such that all files fitting the
 % wildcard will be loaded. If all data from the read in files shall be
-% concatenated set CONCAT to true (defaults to false). If CONCAT is set to
-% true the function returns a cell-array of NxM matrices.
+% concatenated set CONCAT to true (defaults to true). If CONCAT is set to
+% false the function returns a cell-array of NxM matrices.
 %
 % NOTE: for the function to work properly the .dat file must not contain
 % any non numeric values and all lines of the .dat file must contain the
@@ -28,7 +28,7 @@ end
 if size(varargin) > 1
     warning('Function takes only 3 arguments at the moment! Ignoring all but the first')
 elseif isempty(varargin)
-    concat = 0;
+    concat = true;
 else
     validateattributes(varargin{1}, {'logical'},{'nonnan'}, 'datfile_readin', 'concat');
     concat = varargin{1};
