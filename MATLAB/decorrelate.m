@@ -6,9 +6,6 @@ function [Z] = decorrelate(X, varargin)
 % dimension of one variable. If normalize is true (default is false) the
 % returned data will be normalized such that the covariance matrix is the
 % unity matrix.
-%
-% TODO: finish documentation
-% TODO: implement
 
 % by Thomas Madlener, 2015
 
@@ -37,8 +34,7 @@ C = cov(X);
 Z = X * U;
 % normalized output (i.e. cov(Z) = identity)
 if normalize
-    Z = Z * 1/sqrt(D)';
+    Z = Z/sqrt(D);
 end
 
 end
-
