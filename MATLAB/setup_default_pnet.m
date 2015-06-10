@@ -23,11 +23,14 @@ tmpnet.divideFcn = 'dividerand'; % divide data randomly
 % NOTE: consider switching to divideind and providing the indices for
 % better reproducibility
 
-tmpnet.divideParam.trainRatio = 80/100;
-tmpnet.divideParam.valRatio = 20/100;
+tmpnet.divideParam.trainRatio = 85/100;
+tmpnet.divideParam.valRatio = 15/100;
 tmpnet.divideParam.testRatio = 0/100; %% testing with other sample
+
+tmpnet.trainFcn = 'trainscg';
 
 tmpnet.performFcn = 'mse';
 tmpnet.trainParam.epochs = 10000;
+% tmpnet.trainParam.epochs = 10; % to avoid extremely long training times
 
 net = tmpnet;
