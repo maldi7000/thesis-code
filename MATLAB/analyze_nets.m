@@ -92,13 +92,12 @@ end
 nnets = 0;
 for i=1:size(allnets,1), nnets = nnets + length(allnets{i,1}); end
 
-if length(keyentries) < nnets && nargout > 1 % fill up entries to match the number of passed nets
-    for i=length(keyentries)+1:nnets
-        keyentries{i} = sprintf('unlabeled %d', i);
-    end
+nentries = length(keyentries);
+if nentries < nnets && nargout > 1 % fill up entries to match the number of passed nets
+    for i=nentries+1:nnets, keyentries{i} = sprintf('unlabeled %d', i-nentries); end
 end
-if length(keyentries) > nnets && nargout > 1 % remove extra entries
-    warning('got %d names for legend entries, but only %d nets.', length(keyentries), nnets)
+if nentries > nnets && nargout > 1 % remove extra entries
+    warning('got %d names for legend entries, but only %d nets.', nentries, nnets)
     keyentries(nnets+1:end) = [];
 end
 
