@@ -11,12 +11,19 @@ function net = setup_default_pnet(nHidden, varargin)
 % common default.
 
 % by Thomas Madlener, 2015
-if ~isempty(varargin)
-    warning('at the moment only one argument is supported. Ignoring all others!')
+if length(varargin) > 1
+    warning('at the moment only two arguments are supported. Ignoring all others!')
 end
 % COULDDO: check nHidden for some properties (e.g. only 1-dim matrix, ...)
 
+% TODO: make thorough checks for this at the moment quick hack
 tmpnet = feedforwardnet(nHidden);
+if ~isempty(varargin)
+    if strcmpi('pnet', varargin{1}) % if second argument is 'pnet' setup patternnet instead
+        tmpnet = patternnet(nHidden, 'performFcn', 'mse');
+    end
+end
+
 
 tmpnet.divideMode = 'sample'; % at the moment no clear explanation of this can be found! should work however
 tmpnet.divideFcn = 'dividerand'; % divide data randomly
