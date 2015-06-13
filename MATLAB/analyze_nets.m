@@ -9,7 +9,7 @@ function [y,EFF,SNR] = analyze_nets(varargin)
 % value (dividing the output into signal and background) of 0.5;
 %
 % [Y, EFF, SNR] = analyze_nets(NETS_W_X, T, ...) takes a cell-array
-% NETS_W_X where each entry consists of a combination of NETS and inputs X,
+% NETS_W_X where each row entry consists of a combination of NETS and inputs X,
 % which all share the same targets T. This makes it possible to assess
 % different networks with different inputs (but same targets) against each
 % other. Y will be a NxM matrix in this case where N is the total number of
@@ -17,8 +17,8 @@ function [y,EFF,SNR] = analyze_nets(varargin)
 % remain unchanged (see above).
 %
 % [Y, EFF, SNR] = analyze_nets(NETS_W_X_T, ...) takes a cell-array
-% NETS_W_X_T where each entry is a 'combination' of networks together with
-% inputs and targets. THis makes it possible to assess different nets with
+% NETS_W_X_T where each row entry is a 'combination' of networks together with
+% inputs and targets. This makes it possible to assess different nets with
 % different inputs and different targets against each other. Y will be a
 % Nx1 cell-array, where N is the number of input combinations. Every entry
 % of the cell-array will of the same type as if only one network was passed
