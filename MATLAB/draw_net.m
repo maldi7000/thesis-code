@@ -58,13 +58,13 @@ inc = get_circle_colors(inc, 0, 1);
 hidc = get_circle_colors(hidc, 0, 1);
 outc = get_circle_colors(outc, 0, 1);
 
-% new version which needs the colors of the objects to draw
-draw_net(inc, hidc, outc, in_h_c, h_o_c);
+create_drawing(inc,hidc,outc,in_h_c,h_o_c);
 end
 
 %% plotting functions
-% new version of draw_net
-function handle = draw_net(I,H,O,ih,ho)
+% draw the network on canvas. needed: colors of all neurons and colors of
+% all connections
+function handle = create_drawing(I, H, O, ih, ho)
     handle = figure; hold on, % axis equal
     axis off
     set(gcf, 'color', [1,1,1]); % white background
