@@ -26,9 +26,14 @@ function [ output_args ] = draw_net(net,varargin)
 % NOTE: at the moment only the absolute value of a connection is considered
 % on a linear scale
 %
-% TODO: handling of positive and negative connections
 % TODO: implementation of log-scale for weights?
 % COULDDO (probably a TODO for the above features): refactoring
+% TODO: Preprocessing of input before calculating neuron values
+% TODO: Refactor: merge get_line_colors and get_circle_colors into one
+% function (maybe with option)
+% TODO: check possibilities of different colormaps for neurons and
+% connections
+% TODOTODO: implement bias connections!!!! <- FIXME first
 %
 % COULDDO: implement response of network to a given input (i.e. color lines
 % etc. according to the output of given neurons, etc...)
@@ -38,26 +43,38 @@ function [ output_args ] = draw_net(net,varargin)
 
 %% input checks and handling
 p = inputParser; % use input parser for handling options and validating stuff
+p.KeepUnmatched = true; % debugging purposes
 addRequired(p, 'net', @(x) isa(x, 'network'));
 
 expectedOptions = {'plain', 'weightsabs', 'weights', 'input', 'activation'};
 defaultOption = 'plain';
 addOptional(p,'option',defaultOption, ...
     @(x) any(validatestring(x,expectedOptions)));
+defaultInput = [];
+addOptional(p, 'input', defaultInput, @isnumeric);
 
 parse(p,net,varargin{:});
 option = p.Results.option;
+inputVec = p.Results.input;
 
 if length(net.layers) > 2, error('can only handle networks with one hidden layer at the moment'), end
 
-%% main function body
+% get values from net needed for testing (and later in function)
 W_ih = net.IW{1}; % get weigh matrix of input layer - hidden layer
 W_ho = net.LW{2,1}; % get weight matrix of hidden layer - output layer
 
+[hS,iS] = size(W_ih);
+[oS,~] = size(W_ho);
+if isempty(inputVec), inputVec = ones(iS,1), end % fill with ones for default behaviour
+iVS = length(inputVec);
+if ~iscolumn(inputVec), error('input has to be a column-vector'), end
+if iS ~= iVS, error('length of input vector does not match the number of input neurons'),end
+
+%% main function body
 % set circle values to zeros by default
-inV = zeros(size(W_ih,2),1);
-hidV = zeros(size(W_ih,1),1);
-oV = zeros(size(W_ho,1),1);
+inV = zeros(iS,1);
+hidV = zeros(hS,1);
+oV = zeros(oS,1);
 
 if strcmp(option, 'plain') % if plain, simply give all weights the same weight
     W_ih = zeros(size(W_ih));
@@ -67,11 +84,16 @@ if strcmp(option, 'weightsabs')
     W_ih = abs(W_ih);
     W_ho = abs(W_ho);
 end
-if strcmp(option, 'input')
-   % TODO: change neuron values
+if strcmp(option, 'input') || strcmp(option, 'activation')
+    % CHECK: preprocessing needed?
+    % ANSWER: yes -> TODO: findout how to do
+    inV = inputVec;
+    hidV = W_ih * inputVec;
+    oV = W_ho * feval(net.layers{1}.transferFcn, hidV) % calculate the input value of the output layer
 end
 if strcmp(option, 'activation')
-    % TODO: change neuron values
+    hidV = feval(net.layers{1}.transferFcn, hidV);
+    oV = feval(net.layers{2}.transferFcn, oV);
 end
 
 % new version
@@ -85,9 +107,11 @@ inc = cell(size(W_ih,2),1);
 hidc = cell(size(W_ih,1),1);
 outc = cell(size(W_ho,1),1);
 
-inc = get_circle_colors(inV, max(inV), min(inV));
-hidc = get_circle_colors(hidV, max(hidV), min(hidV));
-outc = get_circle_colors(oV, max(oV), min(oV));
+max_n = max([inV; hidV; oV]); % maybe have to transpose oV
+min_n = min([inV; hidV; oV]);
+inc = get_circle_colors(inV, max_n, min_n);
+hidc = get_circle_colors(hidV, max_n, min_n);
+outc = get_circle_colors(oV, max_n, min_n);
 
 create_drawing(inc,hidc,outc,in_h_c,h_o_c);
 draw_legend(max_w, min_w); % TODO: fix, needs handle?
@@ -184,6 +208,7 @@ function linecols = get_line_colors(M, w_max, w_min)
     linecols = cell(size(M)); % preallocate
     colmap = get_colormap(w_max, w_min); % WARNING: the value of 51 is also used in other places!
     col_int = linspace(w_min, w_max, length(colmap)); % define an intervall for each color
+    % TODO: this doesnot guarantee that 0 is white!!! -> FIXME
 %     col_int = linspace(log(1e-1),log(abs_max),51); % define logarithmic scale
     for i=1:size(M,1)
         for j=1:size(M,2)
@@ -209,8 +234,17 @@ function circlecols = get_circle_colors(V, v_max, v_min)
     circlecols = cell(size(V));
     if v_max == v_min % temporary solution for non colored neurons
         circlecols(:) = {'none'}; % assign no color to cells, for now
+    else
+        colmap = get_colormap(v_max, v_min)
+        col_int = linspace(v_min,v_max,length(colmap));
+        for i=1:size(V,1)
+            for j=1:size(V,2)
+                col = find(col_int <= V(i,j));
+                circlecols{i,j} = colmap(col(end),:);
+            end
+        end
     end
-%     circlecols = {}; % return empty at the moment
+    
 end
 
 % define colormap for this function
