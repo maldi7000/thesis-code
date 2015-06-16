@@ -29,11 +29,11 @@ function [ output_args ] = draw_net(net,varargin)
 % TODO: implementation of log-scale for weights?
 % COULDDO (probably a TODO for the above features): refactoring
 % TODO: Preprocessing of input before calculating neuron values
-% TODO: Refactor: merge get_line_colors and get_circle_colors into one
-% function (maybe with option)
 % TODO: check possibilities of different colormaps for neurons and
 % connections
 % TODOTODO: implement bias connections!!!! <- FIXME first
+% TODO: current implementation of get_colormap does not guarantee 0 to be
+% white (what would be desired behaviour)
 %
 % COULDDO: implement response of network to a given input (i.e. color lines
 % etc. according to the output of given neurons, etc...)
@@ -65,7 +65,7 @@ W_ho = net.LW{2,1}; % get weight matrix of hidden layer - output layer
 
 [hS,iS] = size(W_ih);
 [oS,~] = size(W_ho);
-if isempty(inputVec), inputVec = ones(iS,1), end % fill with ones for default behaviour
+if isempty(inputVec), inputVec = ones(iS,1); end % fill with ones for default behaviour
 iVS = length(inputVec);
 if ~iscolumn(inputVec), error('input has to be a column-vector'), end
 if iS ~= iVS, error('length of input vector does not match the number of input neurons'),end
@@ -89,7 +89,7 @@ if strcmp(option, 'input') || strcmp(option, 'activation')
     % ANSWER: yes -> TODO: findout how to do
     inV = inputVec;
     hidV = W_ih * inputVec;
-    oV = W_ho * feval(net.layers{1}.transferFcn, hidV) % calculate the input value of the output layer
+    oV = W_ho * feval(net.layers{1}.transferFcn, hidV); % calculate the input value of the output layer
 end
 if strcmp(option, 'activation')
     hidV = feval(net.layers{1}.transferFcn, hidV);
@@ -99,8 +99,8 @@ end
 % new version
 max_w = max([max(W_ih), max(W_ho)]);
 min_w = min([min(W_ih), min(W_ho)]);
-in_h_c = get_line_colors(W_ih, max_w, min_w);
-h_o_c = get_line_colors(W_ho, max_w, min_w);
+in_h_c = get_object_colors(W_ih, max_w, min_w, 'line');
+h_o_c = get_object_colors(W_ho, max_w, min_w, 'line');
 
 % temporary solution -> TODO: get this from actually useful values
 inc = cell(size(W_ih,2),1);
@@ -109,12 +109,12 @@ outc = cell(size(W_ho,1),1);
 
 max_n = max([inV; hidV; oV]); % maybe have to transpose oV
 min_n = min([inV; hidV; oV]);
-inc = get_circle_colors(inV, max_n, min_n);
-hidc = get_circle_colors(hidV, max_n, min_n);
-outc = get_circle_colors(oV, max_n, min_n);
+inc = get_object_colors(inV, max_n, min_n, 'neuron');
+hidc = get_object_colors(hidV, max_n, min_n, 'neuron');
+outc = get_object_colors(oV, max_n, min_n, 'neuron');
 
 create_drawing(inc,hidc,outc,in_h_c,h_o_c);
-draw_legend(max_w, min_w); % TODO: fix, needs handle?
+if ~strcmp(option, 'plain'), draw_legend(max_w, min_w); end % TODO: fix, needs handle?
 end
 
 %% plotting functions
@@ -202,20 +202,22 @@ function [in_x, hid_x, out_x] = get_x_positions()
     in_x = -30; hid_x = 0; out_x = 30;
 end
 
-% get the linecolors for every line (returns a NxM cell-array with a 1x3 rgb color
-% for every matrix entry
-function linecols = get_line_colors(M, w_max, w_min)
-    linecols = cell(size(M)); % preallocate
-    colmap = get_colormap(w_max, w_min); % WARNING: the value of 51 is also used in other places!
-    col_int = linspace(w_min, w_max, length(colmap)); % define an intervall for each color
-    % TODO: this doesnot guarantee that 0 is white!!! -> FIXME
-%     col_int = linspace(log(1e-1),log(abs_max),51); % define logarithmic scale
+% get colors from default colormap generating function for objects to be
+% drawn by passing a matrix of values and a min and max value to determine
+% the whole range
+function objcolors = get_object_colors(M, v_max, v_min, object)
+    objcolors = cell(size(M));
+    if v_max == v_min && v_max == 0 % return black lines and white circles for only zero entries
+        if strcmp(object,'line'), objcolors(:) = {zeros(1,3)}; end
+        if strcmp(object,'neuron'), objcolors(:) = {ones(1,3)}; end
+        return;
+    end
+    colmap = get_colormap(v_max, v_min); % returns a colmap of approx. length 50
+    col_int = linspace(v_min, v_max, length(colmap)); % define an intervall for each color
     for i=1:size(M,1)
         for j=1:size(M,2)
             col = find(col_int <= M(i,j));
-%             col = find(col_int <= log(abs(M(i,j))));
-%             if isempty(col), col = 1; end % safety measure
-            linecols{i,j} = colmap(col(end),:); % TODO
+            objcolors{i,j} = colmap(col(end),:);
         end
     end
 end
@@ -227,24 +229,6 @@ function [HV, OV] = calc_neuron_vals(IN,H,O,option)
     
     HV = [];
     OV = [];
-end
-
-% determine the colors of the neuron circles
-function circlecols = get_circle_colors(V, v_max, v_min)
-    circlecols = cell(size(V));
-    if v_max == v_min % temporary solution for non colored neurons
-        circlecols(:) = {'none'}; % assign no color to cells, for now
-    else
-        colmap = get_colormap(v_max, v_min)
-        col_int = linspace(v_min,v_max,length(colmap));
-        for i=1:size(V,1)
-            for j=1:size(V,2)
-                col = find(col_int <= V(i,j));
-                circlecols{i,j} = colmap(col(end),:);
-            end
-        end
-    end
-    
 end
 
 % define colormap for this function
