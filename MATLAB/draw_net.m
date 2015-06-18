@@ -114,7 +114,14 @@ hidc = get_object_colors(hidV, max_n, min_n, 'neuron');
 outc = get_object_colors(oV, max_n, min_n, 'neuron');
 
 create_drawing(inc,hidc,outc,in_h_c,h_o_c);
-if ~strcmp(option, 'plain'), draw_legend(max_w, min_w); end % TODO: fix, needs handle?
+if ~strcmp(option, 'plain')
+    if max_n == min_n && max_n == 0
+        draw_legend(max_w, min_w, ''); % colorbar on same figure
+    else
+        draw_legend(max_w, min_w, 'weights');
+        draw_legend(max_n, min_n, 'neurons');
+    end
+end % TODO: fix, needs handle?
 end
 
 %% plotting functions
@@ -170,9 +177,13 @@ function handle = draw_neuron_circles(h, x, y, colors)
 end
 
 % draw legend for understanding the meaning of the colors
-function handle = draw_legend(w_max, w_min)
+function handle = draw_legend(w_max, w_min, titlestr)
+    if ~isempty(titlestr) % if empty title -> plot on original canvas
+        figure; % preliminary solution: plot coloraxis on new plot
+        title(titlestr);
+    end
 %     set(groot, 'CurrentFigure', h); % does not work on R2013b, why?
-    colmap = colormap(get_colormap(w_max, w_min));
+    colormap(get_colormap(w_max, w_min));
     caxis([w_min, w_max]);
     c = colorbar;
     c.Label.String = 'Absolute value of weight'; % doesnot work in R2013b
@@ -222,34 +233,25 @@ function objcolors = get_object_colors(M, v_max, v_min, object)
     end
 end
 
-% calculate the values the neurons have. options: input -> input value,
-% activation -> activation-function value corresponding to input (= neuron
-% output)
-function [HV, OV] = calc_neuron_vals(IN,H,O,option)
-    
-    HV = [];
-    OV = [];
-end
-
 % define colormap for this function
 % COULDDO: make this take options (e.g. greyscale, etc.)
 % desired: 
 function colmap = get_colormap(v_max, v_min)
-    steps = 50;
+    steps = 17; % yields approx 3*steps different if v_min
     if v_min == 0
-       ng = round(steps / 3);
+       ng = steps;
        nr = 0;
     else
-        r = abs(v_max/v_min);
-        ng = round(steps  * r / 3);
-        nr = round(steps /r / 3);
+        d = abs(v_max - v_min); % range to be spanned
+        ng = abs(round(steps  * v_max / d)); % "green steps"
+        nr = abs(round(steps * v_min / d)); % "red steps"
     end
     gm = [ones(ng,1); linspace(1,0.5,2*ng)'];
     gh = [linspace(1,0,2*ng)'; zeros(ng,1)];
     rm = [linspace(0.5,1,2*nr)'; ones(nr,1)];
     rh = [zeros(nr,1); linspace(0,1,2*nr)'];
     
-    colmap = colormap([rm, rh, rh;gh,gm,gh]); % avoid entry 1,1,1 twice
+    colmap = colormap([rm, rh, rh; gh,gm,gh]);
 
 %     m = [ones(n,1); linspace(1,0.5,2*n)'];
 % %     h = [zeros(2*n,1); linspace(0,1,n)'];
