@@ -73,11 +73,6 @@ h_o_c = get_object_colors(W_ho, max_w, min_w, 'line');
 b_h_c = get_object_colors(hB, max_w, min_w, 'line'); % get colors of bias connections
 b_o_c = get_object_colors(oB, max_w, min_w, 'line');
 
-% temporary solution -> TODO: get this from actually useful values
-inc = cell(size(W_ih,2),1);
-hidc = cell(size(W_ih,1),1);
-outc = cell(size(W_ho,1),1);
-
 max_n = max([inV; hidV; oV]); % maybe have to transpose oV
 min_n = min([inV; hidV; oV]);
 inc = get_object_colors(inV, max_n, min_n, 'neuron');
