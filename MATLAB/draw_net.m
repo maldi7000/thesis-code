@@ -1,9 +1,11 @@
-function [ output_args ] = draw_net(net,varargin)
+function [ Y ] = draw_net(net,varargin)
 %DRAW_NET draws the given neural net
 %
-% draw_net(NET,...) takes as input a neural network (at the moment only
+% Y = draw_net(NET,...) takes as input a neural network (at the moment only
 % a feedforward network with one hidden layer) and draws its structure and
-% some additional information that can be controlled via OPTION.
+% some additional information that can be controlled via OPTION. If an
+% input is passed the value the network returns for that input is returned
+% in Y (0 by default).
 %
 % possible inputs for OPTION:
 % + 'plain': simply plot the structure of the network (default) (DONE)
@@ -14,11 +16,12 @@ function [ output_args ] = draw_net(net,varargin)
 % + 'input': plot the structure of the network. The color of each
 % connection depends on the actual signal value (= weight *
 % connection-input). The color of each neuron depends on the neuron input
-% (= sum of ingoing signals). (TODO)
+% (= sum of ingoing signals). This includes preprocessing of the input.
 % + 'activation': plot the structure of the network. The color of each
 % connection depends on the actual signal value (= weight *
 % connection-input). The color of each neuron depends on the neuron
-% activation value (= output of neuron). (TODO)
+% activation value (= output of neuron). This includes preprocessing of the
+% input but no postprocessing ouf the output!
 %
 % At the moment it plots the neural network and its connections where the
 % connections are colored according to the weight of the connection.
@@ -29,14 +32,10 @@ function [ output_args ] = draw_net(net,varargin)
 % TODO: implementation of log-scale for weights?
 % COULDDO (probably a TODO for the above features): refactoring
 % TODO: Preprocessing of input before calculating neuron values
+% |-> TODO: somewhere there is still a bug -> find out where
 % TODO: check possibilities of different colormaps for neurons and
 % connections
-% TODOTODO: implement bias connections!!!! <- FIXME first
-% TODO: current implementation of get_colormap does not guarantee 0 to be
-% white (what would be desired behaviour)
 %
-% COULDDO: implement response of network to a given input (i.e. color lines
-% etc. according to the output of given neurons, etc...)
 %
 
 % by Thomas Madlener, 2015
@@ -58,45 +57,20 @@ option = p.Results.option;
 inputVec = p.Results.input;
 
 if length(net.layers) > 2, error('can only handle networks with one hidden layer at the moment'), end
-
-% get values from net needed for testing (and later in function)
-W_ih = net.IW{1}; % get weigh matrix of input layer - hidden layer
-W_ho = net.LW{2,1}; % get weight matrix of hidden layer - output layer
-
-[hS,iS] = size(W_ih);
-[oS,~] = size(W_ho);
+[~,iS] = size(net.IW{1});
+[~,~] = size(net.LW{2,1});
 if isempty(inputVec), inputVec = ones(iS,1); end % fill with ones for default behaviour
 iVS = length(inputVec);
 if ~iscolumn(inputVec), error('input has to be a column-vector'), end
 if iS ~= iVS, error('length of input vector does not match the number of input neurons'),end
 
+Y = 0; % default return value);
 %% main function body
-hB = net.b{1}; % bias vector of hidden layer
-oB = net.b{2}; % bias vector of output layer
-% set circle values to zeros by default
-inV = zeros(iS,1);
-hidV = zeros(hS,1);
-oV = zeros(oS,1);
+% get the values for all objects to plot
+[inV,hidV,oV,W_ih,W_ho,hB,oB] = get_values(net,option,inputVec);
 
-if strcmp(option, 'plain') % if plain, simply give all weights the same weight
-    W_ih = zeros(size(W_ih));
-    W_ho = zeros(size(W_ho));
-end
-if strcmp(option, 'weightsabs')
-    W_ih = abs(W_ih); hB = abs(hB);
-    W_ho = abs(W_ho); oB = abs(oB);
-end
-if strcmp(option, 'input') || strcmp(option, 'activation')
-    % CHECK: preprocessing needed?
-    % ANSWER: yes -> TODO: findout how to do
-    inV = inputVec;
-    hidV = W_ih * inputVec;
-    oV = W_ho * feval(net.layers{1}.transferFcn, hidV); % calculate the input value of the output layer
-end
-if strcmp(option, 'activation')
-    hidV = feval(net.layers{1}.transferFcn, hidV);
-    oV = feval(net.layers{2}.transferFcn, oV);
-end
+% calculate output if necessary
+if ~isempty(p.Results.input), Y = calculate_output(oV,net,option); end
 
 % new version
 max_w = max([max(W_ih), max(W_ho), max(hB), max(oB)]);
@@ -160,9 +134,9 @@ function handle = draw_weight_lines(h,H, bH,O,bO)
     [x_in, x_hid, x_out] = get_x_positions();
     
     % draw lines from input to hidden
-    draw_lines(x_in, x_hid, y_in, y_hid, H);
+    draw_lines(h,x_in, x_hid, y_in, y_hid, H);
     % draw lines from hidden to output
-    draw_lines(x_hid, x_out, y_hid, y_out, O);
+    draw_lines(h,x_hid, x_out, y_hid, y_out, O);
     
     % draw bias connections (CAUTION: the offsets in x and y are hardcoded
     % and also used for drawing the circles!)
@@ -173,12 +147,13 @@ end
 
 % draw lines
 % draw all possible lines from x1, y1(i) to x2, y2(j) with color c{i,j}
-function handle = draw_lines(x1, x2, y1, y2, c)
+function handle = draw_lines(h,x1, x2, y1, y2, c)
     for i=1:length(y1)
         for j=1:length(y2)
             line([x1, x2], [y1(i), y2(j)], 'Color', c{j,i});
         end
     end
+    handle = h;
 end
 
 % draw neuron circles
@@ -211,6 +186,66 @@ function handle = draw_legend(w_max, w_min, titlestr)
 end
 
 %% helper stuff
+% get the values of the connections and the neurons to be drawn
+function [iN,hN,oN,ihC,hoC,hB,oB] = get_values(net,option,input)
+    % get all values from net first
+    ihC = net.IW{1}; hoC = net.LW{2,1}; hB = net.b{1}; oB = net.b{2};
+    % initialize neuron values to 0 by default and assign values only if
+    % needed
+    iN = zeros(size(ihC,2),1); hN = zeros(size(ihC,1),1); oN = zeros(size(hoC,1),1);
+
+    if strcmp(option,'plain') % if option plain set all values to 0
+        ihC(:,:) = 0; hoC(:,:) = 0; hB(:,:) = 0; oB(:,:) = 0;
+    end
+    if strcmp(option,'weightsabs')
+        ihC = abs(ihC); hoC = abs(hoC); hB = abs(hB); oB = abs(oB);
+    end
+    if strcmp(option,'input') || strcmp(option,'activation')
+        iN = preprocess(net,input);
+        hN = ihC * iN; % input values of hidden neurons
+        ihC = get_signal_value(ihC, iN);
+        aH = feval(net.layers{1}.transferFcn, hN); % calculate the activation value of the hidden neurons
+        oN = hoC * aH + oB; % input value of output neurons
+        hoC = get_signal_value(hoC, aH);
+    end
+    if strcmp(option,'activation')
+        hN = aH;
+        oN = feval(net.layers{2}.transferFcn, oN);
+    end
+
+end
+
+% calculate the output value of the network from the value of the output
+% neurons
+function output = calculate_output(oN, net, option)
+    if ~strcmp(option, 'activation')
+        output = feval(net.layers{2}.transferFcn, oN);
+        output = postprocess(net,output);
+    else
+        output = postprocess(net,oN);
+    end
+end
+
+% calculate the signal values that a connection is transporting
+% W is the weight matrix connecting layer i and j, x is the input from
+% layer i, signal is the matrix of the signal values (i.e. row i from W
+% gets multiplied with value i from x)
+function signal = get_signal_value(W,x)
+    signal = W .* repmat(x,1,size(W,1))';
+end
+
+% preprocess the network inputs to get the same values as y=net(x)
+% CAUTION: this does probably not work if there are more than one
+% preprocessing functions
+function y = preprocess(net,x)
+    y = feval(net.input.processFcns{1}, 'apply', x, net.input.processSettings{1});
+end
+
+% postprocess the network outputs to get the same values as y=net(x)
+function y = postprocess(net,x)
+    y = feval(net.output.processFcns{1}, 'reverse', x, net.output.processSettings{1});
+end
+
 % determine the positions of the nodes on the plotting plane
 function [in_y, hid_y, out_y] = get_y_positions(sizes)
     s = 2; % distance between circle centers -> make this parameter?
