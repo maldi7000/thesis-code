@@ -46,7 +46,7 @@ end
 %% function body
 mins = cellfun(@(x) min(x,[],2), y, 'UniformOutput', false); % get min and max values for every network output
 maxs = cellfun(@(x) max(x,[],2), y, 'UniformOutput', false);
-nnets = length(cell2mat(mins));
+nnets = sum(cellfun(@(x) size(x,1), mins)); % get the number of histograms to plot
 [nR, nC] = calc_layout(nnets);
 keyentries = check_and_handle(keyentries, nnets);
 
