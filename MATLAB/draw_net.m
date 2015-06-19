@@ -71,6 +71,8 @@ if ~iscolumn(inputVec), error('input has to be a column-vector'), end
 if iS ~= iVS, error('length of input vector does not match the number of input neurons'),end
 
 %% main function body
+hB = net.b{1}; % bias vector of hidden layer
+oB = net.b{2}; % bias vector of output layer
 % set circle values to zeros by default
 inV = zeros(iS,1);
 hidV = zeros(hS,1);
@@ -81,8 +83,8 @@ if strcmp(option, 'plain') % if plain, simply give all weights the same weight
     W_ho = zeros(size(W_ho));
 end
 if strcmp(option, 'weightsabs')
-    W_ih = abs(W_ih);
-    W_ho = abs(W_ho);
+    W_ih = abs(W_ih); hB = abs(hB);
+    W_ho = abs(W_ho); oB = abs(oB);
 end
 if strcmp(option, 'input') || strcmp(option, 'activation')
     % CHECK: preprocessing needed?
@@ -97,10 +99,12 @@ if strcmp(option, 'activation')
 end
 
 % new version
-max_w = max([max(W_ih), max(W_ho)]);
-min_w = min([min(W_ih), min(W_ho)]);
+max_w = max([max(W_ih), max(W_ho), max(hB), max(oB)]);
+min_w = min([min(W_ih), min(W_ho), min(hB), min(oB)]);
 in_h_c = get_object_colors(W_ih, max_w, min_w, 'line');
 h_o_c = get_object_colors(W_ho, max_w, min_w, 'line');
+b_h_c = get_object_colors(hB, max_w, min_w, 'line'); % get colors of bias connections
+b_o_c = get_object_colors(oB, max_w, min_w, 'line');
 
 % temporary solution -> TODO: get this from actually useful values
 inc = cell(size(W_ih,2),1);
@@ -113,7 +117,7 @@ inc = get_object_colors(inV, max_n, min_n, 'neuron');
 hidc = get_object_colors(hidV, max_n, min_n, 'neuron');
 outc = get_object_colors(oV, max_n, min_n, 'neuron');
 
-create_drawing(inc,hidc,outc,in_h_c,h_o_c);
+create_drawing(inc,hidc,outc,in_h_c, b_h_c, h_o_c, b_o_c);
 if ~strcmp(option, 'plain')
     if max_n == min_n && max_n == 0
         draw_legend(max_w, min_w, ''); % colorbar on same figure
@@ -127,47 +131,62 @@ end
 %% plotting functions
 % draw the network on canvas. needed: colors of all neurons and colors of
 % all connections
-function handle = create_drawing(I, H, O, ih, ho)
+function handle = create_drawing(I, H, O, ih, bh, ho, bo)
     handle = figure; hold on, % axis equal
     axis off
     set(gcf, 'color', [1,1,1]); % white background
     
-    handle = draw_weight_lines(handle, ih, ho);
+    handle = draw_weight_lines(handle, ih, bh, ho, bo);
     
     [ip_x, hp_x, op_x] = get_x_positions(); % get neuron x- & y-positions
     [ip_y, hp_y, op_y] = get_y_positions([size(ih'), size(ho,1)]);
     
+    % draw neurons
     handle = draw_neuron_circles(handle, ip_x, ip_y, I);
     handle = draw_neuron_circles(handle, hp_x, hp_y, H);
     handle = draw_neuron_circles(handle, op_x, op_y, O);
+
+    % draw bias-"neurons"
+    B = cell(size(H,1),1); B(:) = {zeros(1,3)}; % bias-neurons shall be black
+    handle = draw_neuron_circles(handle, hp_x + 5, hp_y + 2, B, 0.2);
+    B = cell(size(O,1),1); B(:) = {zeros(1,3)};
+    handle = draw_neuron_circles(handle, op_x - 0.5, op_y + 3, B, 0.2);
 end
 
 % new version of draw_weight_lines
-function handle = draw_weight_lines(h,H,O)
+function handle = draw_weight_lines(h,H, bH,O,bO)
 %     set(groot, 'CurrentFigure', h); % does not work on R2013b, why?
     [y_in, y_hid, y_out] = get_y_positions([size(H'), size(O)]);
     [x_in, x_hid, x_out] = get_x_positions();
     
     % draw lines from input to hidden
-    for i=1:size(H,2)
-        for j=1:size(H,1)
-            line([x_in, x_hid],[y_in(i), y_hid(j)], 'Color', H{j,i});
-        end
-    end
+    draw_lines(x_in, x_hid, y_in, y_hid, H);
     % draw lines from hidden to output
-    for i=1:size(O,1)
-        for j=1:size(O,2)
-            line([x_hid,x_out], [y_hid(j), y_out(i)], 'Color', O{i,j});
-        end
-    end
+    draw_lines(x_hid, x_out, y_hid, y_out, O);
     
+    % draw bias connections (CAUTION: the offsets in x and y are hardcoded
+    % and also used for drawing the circles!)
+    for i=1:length(bH), line([x_hid+5, x_hid],[y_hid(i)+2, y_hid(i)], 'Color', bH{i}); end
+    for i=1:length(bO), line([x_out-0.5,x_out],[y_out(i)+3, y_out(i)], 'Color', bO{i}); end
     handle = h; % does this work?
 end
 
+% draw lines
+% draw all possible lines from x1, y1(i) to x2, y2(j) with color c{i,j}
+function handle = draw_lines(x1, x2, y1, y2, c)
+    for i=1:length(y1)
+        for j=1:length(y2)
+            line([x1, x2], [y1(i), y2(j)], 'Color', c{j,i});
+        end
+    end
+end
+
 % draw neuron circles
-function handle = draw_neuron_circles(h, x, y, colors)
+function handle = draw_neuron_circles(h, x, y, colors, radius)
     %     set(groot, 'CurrentFigure', h); % does not work on R2013b, why?
-    radius = .8;
+    if nargin == 4
+        radius = .8;
+    end
     for i=1:length(y)
         circles(x, y(i), radius, 'facecolor', colors{i});
     end
@@ -252,9 +271,4 @@ function colmap = get_colormap(v_max, v_min)
     rh = [zeros(nr,1); linspace(0,1,2*nr)'];
     
     colmap = colormap([rm, rh, rh; gh,gm,gh]);
-
-%     m = [ones(n,1); linspace(1,0.5,2*n)'];
-% %     h = [zeros(2*n,1); linspace(0,1,n)'];
-%     h = [linspace(1,0,2*n)'; zeros(n,1)];
-%     colmap = [h,m,h]; % greyscal color map
 end
