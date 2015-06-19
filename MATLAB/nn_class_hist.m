@@ -1,8 +1,8 @@
 function [ out ] = nn_class_hist(t,y,keyentries)
-%NN_CLASS_Hist plots histograms of how a network classifies a certain input
+%NN_CLASS_HIST plots histograms of how a network classifies a certain input
 %
 % nn_class_hist(T,Y,KEYENTRIES) takes as inputs a 1xN row vector of targets T and a MxN
-% matrix of network outputs Y, where N is the number of samples and M is
+% matrix of network/classifier outputs Y, where N is the number of samples and M is
 % the number of networks (from which the outputs are taken). It produces
 % for each output a histogram of the output for the whole output and
 % superimposed (not stacked!) a histogram of the output of the signal
@@ -11,7 +11,7 @@ function [ out ] = nn_class_hist(t,y,keyentries)
 % nn_class_hist(T,Y,KEYENTRIES) takes as inputs two 1xK or (Kx1) cell
 % arrays T and Y, where the i-th entry in the cell-arrays is of the same
 % form as the input for this function when vectors and matrices are used
-% (see above). This allows to put networks with different targets and
+% (see above). This allows to put networks/classifiers with different targets and
 % outputs on the same drawing pad.
 %
 % The argument KEYENTRIES is optional and can be used to pass the along
