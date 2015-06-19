@@ -7,7 +7,10 @@ function [ Y ] = draw_net(net,varargin)
 % input is passed the value the network returns for that input is returned
 % in Y (0 by default).
 %
-% possible inputs for OPTION:
+% an input can be passed with the Name 'input', where the Value is a valid
+% network input
+%
+% possible inputs for Name, Value pair, 'option',...
 % + 'plain': simply plot the structure of the network (default) (DONE)
 % + 'weigtsabs': plot the structure of the network. The color of each
 % connections depends on the absolute weight of the corresponding weight (DONE)
@@ -23,20 +26,10 @@ function [ Y ] = draw_net(net,varargin)
 % activation value (= output of neuron). This includes preprocessing of the
 % input but no postprocessing ouf the output!
 %
-% At the moment it plots the neural network and its connections where the
-% connections are colored according to the weight of the connection.
-%
-% NOTE: at the moment only the absolute value of a connection is considered
-% on a linear scale
-%
 % TODO: implementation of log-scale for weights?
 % COULDDO (probably a TODO for the above features): refactoring
-% TODO: Preprocessing of input before calculating neuron values
-% |-> TODO: somewhere there is still a bug -> find out where
 % TODO: check possibilities of different colormaps for neurons and
-% connections
-%
-%
+% connections -> Especially on the same figure as the network
 
 % by Thomas Madlener, 2015
 
@@ -202,7 +195,7 @@ function [iN,hN,oN,ihC,hoC,hB,oB] = get_values(net,option,input)
     end
     if strcmp(option,'input') || strcmp(option,'activation')
         iN = preprocess(net,input);
-        hN = ihC * iN; % input values of hidden neurons
+        hN = ihC * iN + hB; % input values of hidden neurons
         ihC = get_signal_value(ihC, iN);
         aH = feval(net.layers{1}.transferFcn, hN); % calculate the activation value of the hidden neurons
         oN = hoC * aH + oB; % input value of output neurons
