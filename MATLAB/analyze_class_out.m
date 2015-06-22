@@ -58,8 +58,33 @@ xlabel('classification threshold')
 ylabel('r')
 legend(keyentries,'Location','Best')
 
-% TODO: roc?
+figure; % return handle?
+plot(R,S)
+title('SNR vs. efficiency')
+xlabel('efficiency')
+ylabel('SNR')
+legend(keyentries,'Location','Best')
+
+% % TODO: ROC only works with 0 and 1 targets
+% fprintf('making ROC plot\n')
+% iplot = 0;
+% col = colormap(lines(nnets)); % determine line colors automatically
+% for i=1:size(y,1)
+%     for j=1:size(y{i},1)
+%         iplot = iplot + 1; % increase plot counter
+%         [TT,FK,~] = roc(t{i}, y{i}(j,:));
+%         plot(FK,TT, 'Color', col(iplot,:))
+%         hold on
+%     end
+% end
+% title('ROC');
+% xlabel('False Positive Rate')
+% ylabel('True Positive Rate')
+% legend(keyentries, 'Location', 'Best');
+% hold off
+
 end
+
 %% helper functions
 % calculate the 'optimal layout'
 function [nR,nC] = calc_layout(nPlots)
@@ -78,10 +103,10 @@ end
 
 % caclulate snr and efficiency for given targets and outputs and signal threshold
 function [s,r] = snr_eff(t,y,boundary)
-tt = sum(y(:,t==1)>boundary,2);
-ft = sum(y(:,t==0)>boundary,2);
+tt = sum(y(:,t>0)>boundary,2); % t == 1 for signal outputs
+ft = sum(y(:,t<=0)>boundary,2); % t == 0 for bg outputs for nns, and -1 for bdts
 s = tt./ft;
-r = tt/sum(t);
+r = tt/sum(t>0);
 end
 
 % process the keyentries input such that no problems arise in its later use
