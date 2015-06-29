@@ -1,10 +1,13 @@
 function [out] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 %ANALYZE_CLASS_OUT analyzes the outputs of classifiers
 %
-% analyze_class_out(T,Y,keyentries) .... TODO
+% [SNR,EFF] = analyze_class_out(T,Y,keyentries) .... TODO
 %
 % lb - lower boundary of varying threshold
 % ub - upper boundary of varying threshold
+% TODO: return values
+% EFF - maximum efficiency that can be reached with each classifier
+% SNR - signal-to-noise ratio at the maximum efficiency
 % -> desired: if not passed automatically determine (or set to 0,1 maybe)
 
 %% input handling and checking
@@ -37,12 +40,14 @@ nnets = sum(cellfun(@(x) size(x,1), mins)); % get the the total number of output
 keyentries = check_and_handle(keyentries,nnets);
 
 fprintf('making SNR and efficiency plots\n')
-b = linspace(lb,ub,100);
+b = linspace(lb,ub,50);
 S = zeros(length(b), nnets); R = S; % preallocate
 ib = 1; ie = 0;
+S_in = []; % store the input signal to noise ratio
 for i=1:length(t) % loop over all cell-arrays
     ib = ie + 1; ie = ib + size(y{i},1) - 1; % determine where the values fit into the overall array
     [S(:,ib:ie),R(:,ib:ie)] = snr_eff_range(t{i}, y{i}, b);
+    S_in = [S_in; calc_snr(t{i},1)];
 end
 figure; % return handle?
 plot(b,S);
@@ -59,10 +64,10 @@ ylabel('r')
 legend(keyentries,'Location','Best')
 
 figure; % return handle?
-plot(R,S)
+plot(R,S./repmat(S_in',size(S,1),1)) % blow up input SNR to 'full' matrix
 title('SNR vs. efficiency')
 xlabel('efficiency')
-ylabel('SNR')
+ylabel('SNR_{out}/SNR_{in}')
 legend(keyentries,'Location','Best')
 
 % % TODO: ROC only works with 0 and 1 targets
