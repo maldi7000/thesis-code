@@ -10,7 +10,13 @@ LIB=$(shell root-config --libs) # add all root libraries. CAUTION! this gets the
 
 
 
-all: root2dat
+# all: root2dat
+#
+# root2dat: samples_root2dat.cc
+# 	$(CC) $(LIB) $(INCL) $(CXXFLAGS) samples_root2dat.cc
 
-root2dat: samples_root2dat.cc
-	$(CC) $(LIB) $(INCL) $(CXXFLAGS) samples_root2dat.cc
+
+all: dat2root
+
+dat2root: samples_dat2root.cc
+	$(CC) $(LIB) $(INCL) $(CXXFLAGS) samples_dat2root.cc
