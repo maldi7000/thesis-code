@@ -43,11 +43,11 @@ fprintf('making SNR and efficiency plots\n')
 b = linspace(lb,ub,50);
 S = zeros(length(b), nnets); R = S; % preallocate
 ib = 1; ie = 0;
-S_in = []; % store the input signal to noise ratio
+S_in = zeros(1,length(nnets)); % preallocate input SNR-ratio
 for i=1:length(t) % loop over all cell-arrays
     ib = ie + 1; ie = ib + size(y{i},1) - 1; % determine where the values fit into the overall array
     [S(:,ib:ie),R(:,ib:ie)] = snr_eff_range(t{i}, y{i}, b);
-    S_in = [S_in; calc_snr(t{i},1)];
+    S_in(ib:ie) = calc_snr(t{i},1);
 end
 figure; % return handle?
 plot(b,S);
@@ -64,29 +64,36 @@ ylabel('r')
 legend(keyentries,'Location','Best')
 
 figure; % return handle?
-plot(R,S./repmat(S_in',size(S,1),1)) % blow up input SNR to 'full' matrix
+plot(R,S./repmat(S_in,size(S,1),1)) % blow up input SNR to 'full' matrix
 title('SNR vs. efficiency')
 xlabel('efficiency')
 ylabel('SNR_{out}/SNR_{in}')
+xlim([0.99,1]) % set xaxis range to 'interesting' range
 legend(keyentries,'Location','Best')
 
-% % TODO: ROC only works with 0 and 1 targets
-% fprintf('making ROC plot\n')
-% iplot = 0;
-% col = colormap(lines(nnets)); % determine line colors automatically
-% for i=1:size(y,1)
-%     for j=1:size(y{i},1)
-%         iplot = iplot + 1; % increase plot counter
-%         [TT,FK,~] = roc(t{i}, y{i}(j,:));
-%         plot(FK,TT, 'Color', col(iplot,:))
-%         hold on
-%     end
-% end
-% title('ROC');
-% xlabel('False Positive Rate')
-% ylabel('True Positive Rate')
-% legend(keyentries, 'Location', 'Best');
-% hold off
+% TODO: ROC only works with 0 and 1 targets
+figure; % return handle?
+fprintf('making ROC plot\n')
+iplot = 0;
+col = colormap(lines(nnets)); % determine line colors automatically
+auroc = ones(nnets,1)*0.5; % save the areas under the curve into array
+for i=1:size(y,1)
+    for j=1:size(y{i},1)
+        iplot = iplot + 1; % increase plot counter
+        [TT,FK,~] = roc(t{i}, y{i}(j,:));
+        plot(FK,TT, 'Color', col(iplot,:))
+        hold on
+        auroc(iplot) = trapz(FK,TT); % calculate auroc using trapez rule
+        fprintf('integrated ROC for %s: %f\n', keyentries{iplot}, auroc(iplot)) % using trapezrule to get the area under the curve
+        keyentries{iplot} = sprintf('%s, AUC = %.03f', keyentries{iplot}, auroc(iplot));
+    end
+end
+line([0,1],[0,1],'Color',[0.7,0.7,0.7]); % plot diagonal
+title('ROC');
+xlabel('False Positive Rate')
+ylabel('True Positive Rate')
+legend(keyentries, 'Location', 'Best');
+hold off
 
 end
 
