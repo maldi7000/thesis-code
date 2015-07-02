@@ -65,6 +65,7 @@ legend(keyentries,'Location','Best')
 
 figure; % return handle?
 plot(R,S./repmat(S_in,size(S,1),1)) % blow up input SNR to 'full' matrix
+% plot(R,S./repmat(S_in,size(S,1),1), 'LineWidth', 3) % thicker lines for presentations and reports
 title('SNR vs. efficiency')
 xlabel('efficiency')
 ylabel('SNR_{out}/SNR_{in}')
@@ -82,6 +83,7 @@ for i=1:size(y,1)
         iplot = iplot + 1; % increase plot counter
         [TT,FK,~] = roc(t{i}, y{i}(j,:));
         plot(FK,TT, 'Color', col(iplot,:))
+%         plot(FK,TT, 'Color', col(iplot,:), 'LineWidth', 3) % thicker lines
         hold on
         auroc(iplot) = trapz(FK,TT); % calculate auroc using trapez rule
         fprintf('integrated ROC for %s: %f\n', keyentries{iplot}, auroc(iplot)) % using trapezrule to get the area under the curve
