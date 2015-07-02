@@ -138,9 +138,13 @@ Line convertStringToLine(std::string rawline)
     rawvals.push_back(d);
   }
 
-  bool truth = rawvals.back(); rawvals.pop_back();
+  bool truth = rawvals.back();
+  rawvals.pop_back();
 
-  return Line(rawvals, truth);
+  Line line(rawvals,truth);
+
+  // return Line(rawvals, truth);
+  return line;
 }
 
 /** read nLines (or until EOF) from infile and return vector of Lines */
@@ -152,7 +156,7 @@ std::vector<Line> readNLines(ifstream& infile, unsigned int nLines)
     string s;
     getline(infile, s);
     // cout << s << endl;
-    lines.push_back(convertStringToLine(s));
+    if(!s.empty()) lines.push_back(convertStringToLine(s));
     // lines.back().Print();
     lCtr++;
   }
@@ -181,17 +185,20 @@ void convertToRootFile(char* filename, char* outfilename)
   std::vector<Line> lineValues{};
   for(;;) {
     static size_t linnr = 0;
-    lineValues = readNLines(infile, 10);
-    linnr += 10;
+    lineValues = readNLines(infile, 100);
+    linnr += 100; // CAUTION hardcoded values
     if(lineValues.empty()) break;
 
     if (!(linnr % 10000)) {
       cout << "read " << linnr << " lines " << endl;
-      break; // TESTING!!! break out after first 10000 lines
+      // break; // TESTING!!! break out after first 10000 lines
     }
 
+    // clear vectors and arrays before readin
     std::array<std::vector<double>,9> emptyBranches{};
     std::swap(branches, emptyBranches);
+    std::vector<bool> emptyTruth{};
+    std::swap(truth,emptyTruth);
 
     for(Line line: lineValues) {
       for(size_t i = 0; i < branches.size(); ++i) {
