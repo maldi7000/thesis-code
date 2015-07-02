@@ -1,7 +1,7 @@
-function [out] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
+function [SNR,EFF,auroc] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 %ANALYZE_CLASS_OUT analyzes the outputs of classifiers
 %
-% [SNR,EFF] = analyze_class_out(T,Y,keyentries) .... TODO
+% [SNR,EFF,AUROC] = analyze_class_out(T,Y,keyentries) .... TODO
 %
 % lb - lower boundary of varying threshold
 % ub - upper boundary of varying threshold
@@ -97,6 +97,10 @@ ylabel('True Positive Rate')
 legend(keyentries, 'Location', 'Best');
 hold off
 
+if nargout >= 2
+    SNR = S;
+    EFF = R;
+end
 end
 
 %% helper functions
