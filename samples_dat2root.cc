@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <array>
 #include <initializer_list>
 #include <utility>
 
@@ -24,15 +25,30 @@
 using namespace std;
 using namespace ROOT;
 
+// /** enum for adhoc type handling*/
+// enum Type {
+//   b, /**< bool */
+//   i, /**< int */
+//   d, /**< double */
+// };
+
 /**
  * helper struct that holds the values of a line in a .dat file
  */
 struct Line {
   /** constructor from vector. initializes values to empty vector then swaps val and values*/
-  Line(std::vector<double>& val) : values{} { std::swap(val,values); }
+  Line(std::vector<double>& val, bool t) : values{val}, truth(t) { ; }
 
+  void Print();
   std::vector<double> values; /**< vector of doubles holding the values of a line */
+  bool truth;
 };
+
+void Line::Print()
+{
+  for (double val: values) { cout << val << " "; }
+  cout << truth << endl;
+}
 
 /**
  * small helper struct to keep the pointers of ROOT contained
@@ -41,16 +57,26 @@ struct RootFile {
 
   /** constructor */
   RootFile(char* filename, std::string treename, std::initializer_list<std::string> bNames);
-  ~RootFile() { delete tree; delete file; } /**< destructor */
+  RootFile(char* filename, std::string treename) : RootFile(filename, treename, {}) { ; }
+  ~RootFile(); // { delete tree; delete file; } /**< destructor */
 
-  void Close() { file->cd(); file->Write(); file->Close(); } /**< Close the root file properly. FIXME; segfault at the moment */
+  void Write() { file->cd(); file->Write(); } //file->Close(); } /**< Write the contents to the root file. Close in destructor */
   // void Fill() { tree->Fill(); } /**< Fill the values into the tree */
-  void CreateBranches(); /**< Create the branches in the root file */
+  template<class T>
+  void AddBranch(std::string name, T& var); /**< Add a branch in the ROOTfile */
+  // void CreateBranches(const std::vector<Type>& types); /**< create a branch for each name and type */
   TFile* file;
   TTree* tree;
   std::vector<std::string> branchNames;
   size_t nBranches;
 };
+
+RootFile::~RootFile()
+{
+  if(tree) delete tree; // delete tree before closing root file (seg fault else)
+  file->Close();
+  if(file) delete file;
+}
 
 RootFile::RootFile(char* filename, std::string treename, std::initializer_list<std::string> bNames) :
   branchNames{bNames}, nBranches(bNames.size())
@@ -59,43 +85,79 @@ RootFile::RootFile(char* filename, std::string treename, std::initializer_list<s
   tree = new TTree(treename.c_str(), "dat file data");
 }
 
-void RootFile::CreateBranches()
+template<class T>
+void RootFile::AddBranch(std::string name, T& var)
 {
-  // TODO
+  tree->Branch(name.c_str(), &var);
+  branchNames.push_back(name); nBranches++;
 }
+
+// /**
+//  * split string and return vector of substrings
+//  */
+// const std::vector<string> splitString(std::string str, char delim = ' ')
+// {
+//   std::vector<string> substrs;
+//   std::stringstream ss{str};
+//   std::string tmp;
+//   while(std::getline(ss,tmp,delim)) substrs.push_back(tmp);
+//   return substrs;
+// }
+
+// /**
+//  * get the number of columns from the first line in the .dat file
+//  * @param infile, ifstream to input .datfile
+//  * returns the number of columns in the .dat file and sets the ifstream to the position prior to the first uncommented line
+//  */
+// int getNColumns(ifstream& infile)
+// {
+//   streampos prelinepos;
+//   string firstline;
+//   do {
+//     prelinepos = infile.tellg(); // get position before getline
+//     getline(infile, firstline);
+//     // cout << firstline << endl;
+//   } while(firstline.substr(0,1) == "#");
+
+//   infile.seekg(prelinepos); // 'putback' line to ifstream
+
+//   return splitString(firstline).size();
+// }
 
 /**
- * split string and return vector of substrings
+ * create a Line object from a raw string
  */
-const std::vector<string> splitString(std::string str, char delim = ' ')
+Line convertStringToLine(std::string rawline)
 {
-  std::vector<string> substrs;
-  std::stringstream ss{str};
-  std::string tmp;
-  while(std::getline(ss,tmp,delim)) substrs.push_back(tmp);
-  return substrs;
+  stringstream ss{rawline};
+  vector<double> rawvals;
+  for(;;){
+    double d;
+    ss >> d;
+    if(!ss) break;
+    rawvals.push_back(d);
+  }
+
+  bool truth = rawvals.back(); rawvals.pop_back();
+
+  return Line(rawvals, truth);
 }
 
-/**
- * get the number of columns from the first line in the .dat file
- * @param infile, ifstream to input .datfile
- * returns the number of columns in the .dat file and sets the ifstream to the position prior to the first uncommented line
- */
-int getNColumns(ifstream& infile)
+/** read nLines (or until EOF) from infile and return vector of Lines */
+std::vector<Line> readNLines(ifstream& infile, unsigned int nLines)
 {
-  streampos prelinepos;
-  string firstline;
-  do {
-    prelinepos = infile.tellg(); // get position before getline
-    getline(infile, firstline);
-    cout << firstline << endl;
-  } while(firstline.substr(0,1) == "#");
-
-  infile.seekg(prelinepos); // 'putback' line to ifstream
-  
-  return splitString(firstline).size();
+  vector<Line> lines{};
+  unsigned int lCtr{};
+  while(!infile.eof() && lCtr < nLines) {
+    string s;
+    getline(infile, s);
+    // cout << s << endl;
+    lines.push_back(convertStringToLine(s));
+    // lines.back().Print();
+    lCtr++;
+  }
+  return lines;
 }
-
 
 /**
  * create the .root file from the
@@ -105,13 +167,45 @@ int getNColumns(ifstream& infile)
 void convertToRootFile(char* filename, char* outfilename)
 {
   ifstream infile(filename, ifstream::in);
-  int nCols = getNColumns(infile);
-  cout << "columns in file: " << nCols << endl;
-  
-  RootFile rootfile(outfilename,"testtree",{});
+  // int nCols = getNColumns(infile);
 
-  // infile.close();
-  // rootfile.Close();
+  RootFile rootfile(outfilename,"testtree");
+  std::array<std::vector<double>,9> branches;
+  std::vector<bool> truth;
+  for(size_t i = 0; i < branches.size(); ++i) {
+    stringstream name{}; name << "Z" << i;
+    rootfile.AddBranch(name.str().c_str(), branches[i]);
+  }
+  rootfile.AddBranch("truth", truth);
+
+  std::vector<Line> lineValues{};
+  for(;;) {
+    static size_t linnr = 0;
+    lineValues = readNLines(infile, 10);
+    linnr += 10;
+    if(lineValues.empty()) break;
+
+    if (!(linnr % 10000)) {
+      cout << "read " << linnr << " lines " << endl;
+      break; // TESTING!!! break out after first 10000 lines
+    }
+
+    std::array<std::vector<double>,9> emptyBranches{};
+    std::swap(branches, emptyBranches);
+
+    for(Line line: lineValues) {
+      for(size_t i = 0; i < branches.size(); ++i) {
+        branches[i].push_back(line.values[i]);
+      }
+      truth.push_back(line.truth);
+    }
+
+    rootfile.tree->Fill();
+
+  }
+
+  infile.close();
+  rootfile.Write();
 }
 
 #ifndef __CINT__
