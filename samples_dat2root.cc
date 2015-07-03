@@ -196,9 +196,8 @@ void convertToRootFile(char* filename, char* outfilename)
 
     // clear vectors and arrays before readin
     std::array<std::vector<double>,9> emptyBranches{};
-    std::swap(branches, emptyBranches);
-    std::vector<bool> emptyTruth{};
-    std::swap(truth,emptyTruth);
+    branches.swap(emptyBranches);
+    truth.clear();
 
     for(Line line: lineValues) {
       for(size_t i = 0; i < branches.size(); ++i) {
