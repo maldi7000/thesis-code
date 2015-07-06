@@ -21,7 +21,7 @@ namespace RootToolBox {
   public:
 
     /** empty ctor */
-    RootBranch() : __branch(NULL), __name("") {}
+    RootBranch() : __name(""), __branch(NULL) {}
 
     /** ctor from string and TTree */
     RootBranch(std::string name, TTree* tree);

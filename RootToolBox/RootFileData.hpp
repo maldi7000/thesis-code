@@ -64,7 +64,7 @@ namespace RootToolBox {
 
   const RootTreeData& RootFileData::getTreeData ( int index ) const
   {
-    if(index >= 0 && index < __treesdata.size()) return __treesdata[index];
+    if(index >= 0 && (uint) index < __treesdata.size()) return __treesdata[index]; // WARNING: c-style cast to suppress compiler warning
     else std::cout << "index is out of range! returning first RootTreeData!" << std::endl;
 
     return __treesdata[0];

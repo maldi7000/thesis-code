@@ -24,7 +24,7 @@ namespace RootToolBox {
   public:
 
     /** empty ctor, needed for returning empty trees */
-    RootTree() : __tree(NULL), __treename("") {}
+    RootTree() : __treename(""), __tree(NULL) {}
 
     /** ctor from treename and the file where the tree is */
     RootTree(std::string treename, TFile* file);
@@ -82,7 +82,7 @@ namespace RootToolBox {
   // ================================================= GET BRANCH ===============================================================
   RootBranch RootTree::getBranch ( int index ) const
   {
-    if(index >= 0 && index < __branches.size()) return __branches[index];
+    if(index >= 0 && (uint) index < __branches.size()) return __branches[index]; // WARNING: c-style cast to suppress compiler warning
     else std::cout << " index is out of range. returning empty RootBranch! " << std::endl;
 
     return RootBranch();

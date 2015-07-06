@@ -117,7 +117,7 @@ namespace RootToolBox {
 
   RootTree RootFile::getTree ( int index ) const
   {
-    if(index >= 0 && index < __trees.size()) return __trees[index];
+    if(index >= 0 && (uint) index < __trees.size()) return __trees[index]; // WARNING: c-style cast to suppress compiler warning
     else std::cout << "index is out of range! returning empty RootTree!" << std::endl;
 
     return RootTree();

@@ -42,7 +42,7 @@ namespace RootToolBox {
     std::vector<std::string> names;
 
     TIter nextkey( file->GetListOfKeys() );
-    TKey * key, * oldkey = 0;
+    TKey * key; // , * oldkey = 0;
     while ( (key = (TKey*) nextkey())) {
       TObject* obj = key->ReadObj();
       if(obj->IsA()->InheritsFrom( TTree::Class()) ) {
@@ -79,7 +79,7 @@ namespace RootToolBox {
   const int getPositionByName(std::vector<RootObject> rootObjects, std::string name)
   {
     int pos = std::find_if(rootObjects.begin(), rootObjects.end(), [&name](const RootObject& object) { return object.getName() == name; } ) - rootObjects.begin();
-    if(pos < rootObjects.size()) return pos;
+    if((uint) pos < rootObjects.size()) return pos; // WARNING: c-style cast to unsigned to suppress warning, but should be no problem, since expecting a positive number from above!
     else return -1;
   }
 
@@ -87,7 +87,7 @@ namespace RootToolBox {
   {
     int pos = std::find_if(branchdata.begin(), branchdata.end(),
 			   [&name](const std::tuple<boost::any, std::string, e_dataTypes>& tup) { return std::get<1>(tup) == name; } ) - branchdata.begin();
-    if(pos < branchdata.size()) return pos;
+    if((uint) pos < branchdata.size()) return pos; // WARNING: c-style cast to unsigned to suppress warning, but should be no problem, since expecting a positive number from above!
     else return -1;
   }
 
