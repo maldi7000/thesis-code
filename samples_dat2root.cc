@@ -176,7 +176,7 @@ void convertToRootFile(char* filename, char* outfilename)
 
   RootFile rootfile(outfilename,"testtree");
   std::array<std::vector<double>,9> branches;
-  std::vector<bool> truth;
+  std::vector<int> truth;
   for(size_t i = 0; i < branches.size(); ++i) {
     stringstream name{}; name << "Z" << i;
     rootfile.AddBranch(name.str().c_str(), branches[i]);
