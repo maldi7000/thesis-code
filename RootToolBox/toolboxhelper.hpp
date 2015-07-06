@@ -27,6 +27,7 @@ namespace RootToolBox {
     c_int = 2, /**<branch holds vector<int> */
     c_uint = 3, /**< branch holds vector<unsigned int> */
     c_usint = 4, /**< branch holds vector <unsigned short int> */
+    c_bool = 5, /**< branch holds vector <bool> */
     c_unknown = -1, /**< branch holds other type */
   };
 
@@ -104,6 +105,10 @@ namespace RootToolBox {
   }
 
   e_dataTypes getBranchDataType(TTree* tree, std::string branchname) {
+    // FIXME: cant handle bools at the moment!
+    // std::vector<bool>* tmpb = nullptr;
+    // if(tree->SetBranchAddress(branchname.c_str(), &tmpb) == 0) return c_bool;
+
     std::vector<double>* tmpd = 0;
     if(tree->SetBranchAddress(branchname.c_str(), &tmpd) == 0) return c_double;
 
@@ -127,19 +132,23 @@ namespace RootToolBox {
     e_dataTypes dataT = getBranchDataType(tree, name);
 
     switch(dataT) {
-      case c_double:
-	branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<double>(name, tree), name, dataT));
-	break;
-      case c_int:
-	branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<int>(name, tree), name, dataT));
-	break;
-      case c_uint:
-	branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<unsigned int>(name, tree), name, dataT));
-	break;
-      case c_usint:
-	branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<unsigned short int>(name, tree), name, dataT));
-	break;
-      default:
+    case c_double:
+      branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<double>(name, tree), name, dataT));
+      break;
+    case c_int:
+      branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<int>(name, tree), name, dataT));
+      break;
+    case c_uint:
+      branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<unsigned int>(name, tree), name, dataT));
+      break;
+    case c_usint:
+      branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<unsigned short int>(name, tree), name, dataT));
+      break;
+    case c_bool:
+      branchdata.push_back(std::make_tuple(new RootToolBox::RootBranchData<bool>(name, tree), name, dataT));
+      break;
+
+    default:
 	std::cout << "WARNING could not deduce a suitable type for branch: " << name << ". This data from this branch will not be fetched!" << std::endl;
     }
 
