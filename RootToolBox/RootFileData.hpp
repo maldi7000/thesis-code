@@ -8,37 +8,37 @@
 // #include <boost/any.hpp>
 
 namespace RootToolBox {
-  
+
   class RootFileData : public RootFile {
   public:
-    
+
     /** ctor from name */
     RootFileData(std::string filename);
-    
+
     RootFileData(std::string filename, std::vector<std::string> treenames);
-    
+
     /** get the vector of RootTreeData */ // TODO: check if return of const reference is good idea!
     const std::vector<RootTreeData>& getTreesData() const { return __treesdata; }
-    
+
     /** get the data from only one tree */ // TODO: check if return of const reference is good idea!
     const RootTreeData& getTreeData(std::string treename) const;
-    
+
     /** get the data from only one tree by index */
     const RootTreeData& getTreeData(int index) const;
-    
+
     /** only get data from a certain event (iEvent) */
     void fetchData(int iEvent, RootToolBox::RootTreeData& treedata);
-    
+
     /** fetch all data from events between iEvent1, and iEvent2 (inclucding iEvent1, excluding iEvent2) */
     void fetchData(int iEvent1, int iEvent2);
-    
+
     /** fetch the data from all events */
     void fetchData();
-    
+
   protected:
     std::vector<RootTreeData> __treesdata;
   };
-  
+
   RootFileData::RootFileData ( std::string filename ) : RootFile ( filename )
   {
     std::vector<std::string> treenames = getTreeNames(__file);
@@ -50,15 +50,15 @@ namespace RootToolBox {
     for (std::string name : treenames) __treesdata.push_back(RootTreeData(name, __file));
   }
 
-  
-  
+
+
   // ========================================================= GET TREE DATA ======================================================
   const RootTreeData& RootFileData::getTreeData ( std::string treename ) const
   {
     int pos = getPositionByName(__treesdata, treename);
     if(pos != -1) return getTreeData(pos);
     else std::cout << "found no tree with name " << treename << "! Returning first treedata!" << std::endl;
-    
+
     return getTreeData(0); // TODO: make that there is an empty return if this happens!
   }
 
@@ -66,11 +66,11 @@ namespace RootToolBox {
   {
     if(index >= 0 && index < __treesdata.size()) return __treesdata[index];
     else std::cout << "index is out of range! returning first RootTreeData!" << std::endl;
-    
+
     return __treesdata[0];
   }
 
-  
+
   // ============================================================ FETCH DATA ======================================================
   void RootFileData::fetchData ( int iEvent, RootTreeData& treedata )
   {

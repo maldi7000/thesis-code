@@ -15,25 +15,25 @@ namespace RootToolBox {
  /** class holding the data that is contained in a tree */
   class RootTreeData : public RootTree {
   public:
-    
+
   /** constructor from a RootFile and a treename */
     RootTreeData(std::string treename, TFile* file);
-    
+
     template<typename T>
     RootBranchData<T>* getBranchData( std::string name ) const;
-    
+
     template<typename T>
     RootBranchData<T>* getBranchData( int index ) const;
-    
+
 //     void applyCut(std::vector<RootToolBox::RootCut> cuts); // TODO when there is more time!
-    
+
     void addEvent(int iEvent);
-    
-  protected:    
+
+  protected:
     std::vector<std::tuple<boost::any, std::string, e_dataTypes> > __branchdata;
   };
-  
-  
+
+
   RootTreeData::RootTreeData ( std::string treename, TFile* file ) : RootTree ( treename, file )
   {
     std::vector<std::string> branchnames = getBranchNames(__tree);
@@ -47,7 +47,7 @@ namespace RootToolBox {
 //     std::cout << "trying to get branch " << name << std::endl;
     if(pos != -1) return getBranchData<T>(pos);
     else std::cout << "found no Branch with name " << name << " returning empty RootBranchData" << std::endl;
-    
+
     exit(-2);
   }
 
@@ -58,7 +58,7 @@ namespace RootToolBox {
     if (index >= 0 && index < __branchdata.size()) return boost::any_cast<RootToolBox::RootBranchData<T>*>(std::get<0>(__branchdata[index]));
 //     if(index >= 0 && index < __bdata.size()) return boost::any_cast<RootBranchData<T> >(__bdata[index]);
     else std::cout << "index is out of range!" << std::endl;
-    
+
     exit(-2);
   }
 
