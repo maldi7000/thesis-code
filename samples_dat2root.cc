@@ -73,6 +73,7 @@ struct RootFile {
 
 RootFile::~RootFile()
 {
+  Write(); // write file before closing and deleting the tree
   if(tree) delete tree; // delete tree before closing root file (seg fault else)
   file->Close();
   if(file) delete file;
