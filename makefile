@@ -7,13 +7,16 @@ CXXFLAGS=-std=c++11 -Wall -g
 #INCL=-I/home/Applications/root/include
 INCL=-I$(shell root-config --incdir)
 LIB=$(shell root-config --libs) # add all root libraries. CAUTION! this gets the environment variables from the shell in which emacs was started!
+ 
 
 
-
-all: root2dat dat2root
+all: root2dat dat2root evaltmva
 
 root2dat: samples_root2dat.cc
 	$(CC) $(LIB) $(INCL) $(CXXFLAGS) -o root2dat samples_root2dat.cc
 
 dat2root: samples_dat2root.cc
 	$(CC) $(LIB) $(INCL) $(CXXFLAGS) -o dat2root samples_dat2root.cc
+
+evaltmva: tmva_evaluation.cc
+	$(CC) $(LIB) -lTMVA $(INCL) $(CXXFLAGS) -o evaltmva tmva_evaluation.cc
