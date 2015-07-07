@@ -58,6 +58,8 @@ public:
   ~TMVAReader() { delete m_reader; } /**< destructor */
   template<class T> void addVariable(std::string name, T& var); /**< add variable */
   std::string getBookMethod() { return m_method; } /**< get the method */
+  void bookMethod() { m_reader->BookMVA(m_method, m_weightfile); }
+  double evaluate() { return m_reader->EvaluateMVA(m_method); }
 private:
   TMVA::Reader* m_reader;
   std::string m_method;
@@ -77,32 +79,23 @@ void TMVAReader::addVariable(std::string name, T& var)
   m_reader->AddVariable(name, &var);
 }
 
+/**
+ * get all values from the tree into an array (matrix like) structure
+ */
+const std::vector<std::vector<double> > getValues(const RootTreeData& tree)
+{
+  std::vector<std::vector<double> > values;
+  for(size_t i = 0; i < 9; ++i) { // CAUTION: hardcoded here
+    std::stringstream name{}; name << "Z" << i;
+    values.push_back( tree.getBranchData<double>(name.str())->getData() );
+  }
+
+  return values;
+}
+
 ///////////////////////////////
 // END OF CLASS DECLARATIONS //
 ///////////////////////////////
-/**
- * add the variables to the TMVAReader and book the TMVAMethod
- */
-void addVariablesAndBookMethod(TMVAReader& reader,const RootTreeData& tree)
-{
-  // for(size_t i = 0; i < 9; ++i) { // CAUTION: hardcoded at the moment
-  //   std::stringstream name{}; name << "Z" << i;
-  //   const std::vector<double> var = tree.getBranchData<double>(name.str())->getData();
-  //   reader.addVariable(name.str(), var);
-  // }
-  // TODO: addVariable takes only a Float_t* -> make a type that holds 9 pointers to doubles and fill them for every sample to feed them to the Tree
-  // Variables have to be added before the BookMVA method is called
-  // Idea: make type member of TMVAReader and set it in the constructor of TMVAReader
-}
-
-/**
- *
- */
-void writeToOutput(ofstream& ostream)
-{
-  // TODO:
-}
-
 /**
  * evaluate the TMVA method and write the values to the outputfile
  * TODO:
@@ -112,21 +105,32 @@ void evaluate_input(char* weightfile, char* inputfile, char* outputfile)
   loadPlugins("FastBDT");
 
   RootFileData infile = RootFileData(std::string(inputfile));
-    infile.fetchData(); // get all data from treeg
+  infile.fetchData(); // get all data from tree
   const RootTreeData& tree = infile.getTreeData("testtree");
   TMVAReader reader("FastBDT", std::string(weightfile));
   cout << "created reader" << endl;
-  addVariablesAndBookMethod(reader, tree);
 
-  // set the branch addresses for the input file
-  // std::array<std::vector<double>,9> inputs;
-  // for(size_t i = 0; i < inputs.size(); ++i) {
-  //   stringstream name{}; name << "Z" << i; // CAUTION: hardcoded
-  //   infile.setBranchAddress(name.str().c_str(), inputs[i]);
-  // }
+  std::array<float,9> input{}; // NOTE: reader can only handle floats (no doubles)
+  for(size_t i = 0; i < input.size(); ++i) { // add the variables
+    std::stringstream name{}; name << "Z" << i;
+    reader.addVariable(name.str(), input[i]);
+  }
+  reader.bookMethod();
 
+  const std::vector<std::vector<double> > inputvalues = getValues(tree);
+  size_t nEntries = inputvalues[0].size();
+  std::vector<double> outputs;
+
+  for(size_t i = 0; i < nEntries; ++i) {
+    for(size_t j = 0; j < input.size(); ++j) {
+      input[j] = inputvalues[j][i];
+    }
+    outputs.push_back(reader.evaluate());
+  }
 
   ofstream outfile(outputfile, ofstream::out);
+  for(double d: outputs) outfile << d << endl;
+  outfile.close();
 }
 
 
