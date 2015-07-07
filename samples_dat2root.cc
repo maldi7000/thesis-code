@@ -16,6 +16,7 @@
 #include <array>
 #include <initializer_list>
 #include <utility>
+#include <chrono>
 
 // root
 #include "TFile.h"
@@ -23,6 +24,7 @@
 #include "TBranch.h"
 
 using namespace std;
+using std::chrono::high_resolution_clock;
 using namespace ROOT;
 
 // /** enum for adhoc type handling*/
@@ -93,38 +95,6 @@ void RootFile::AddBranch(std::string name, T& var)
   branchNames.push_back(name); nBranches++;
 }
 
-// /**
-//  * split string and return vector of substrings
-//  */
-// const std::vector<string> splitString(std::string str, char delim = ' ')
-// {
-//   std::vector<string> substrs;
-//   std::stringstream ss{str};
-//   std::string tmp;
-//   while(std::getline(ss,tmp,delim)) substrs.push_back(tmp);
-//   return substrs;
-// }
-
-// /**
-//  * get the number of columns from the first line in the .dat file
-//  * @param infile, ifstream to input .datfile
-//  * returns the number of columns in the .dat file and sets the ifstream to the position prior to the first uncommented line
-//  */
-// int getNColumns(ifstream& infile)
-// {
-//   streampos prelinepos;
-//   string firstline;
-//   do {
-//     prelinepos = infile.tellg(); // get position before getline
-//     getline(infile, firstline);
-//     // cout << firstline << endl;
-//   } while(firstline.substr(0,1) == "#");
-
-//   infile.seekg(prelinepos); // 'putback' line to ifstream
-
-//   return splitString(firstline).size();
-// }
-
 /**
  * create a Line object from a raw string
  */
@@ -142,10 +112,7 @@ Line convertStringToLine(std::string rawline)
   bool truth = rawvals.back();
   rawvals.pop_back();
 
-  Line line(rawvals,truth);
-
-  // return Line(rawvals, truth);
-  return line;
+  return Line(rawvals, truth);
 }
 
 /** read nLines (or until EOF) from infile and return vector of Lines */
@@ -183,17 +150,14 @@ void convertToRootFile(char* filename, char* outfilename)
   }
   rootfile.AddBranch("truth", truth);
 
-  std::vector<Line> lineValues{};
-  for(;;) {
-    static size_t linnr = 0;
-    lineValues = readNLines(infile, 100);
-    linnr += 100; // CAUTION hardcoded values
-    if(lineValues.empty()) break;
 
-    if (!(linnr % 10000)) {
-      cout << "read " << linnr << " lines " << endl;
-      // break; // TESTING!!! break out after first 10000 lines
-    }
+  std::vector<Line> lineValues{};
+  static size_t linnr = 0;
+  high_resolution_clock::time_point start = high_resolution_clock::now(); // measure time
+  for(;;) {
+    lineValues = readNLines(infile, 100); // COULDDO: increase this number (100 - 1000 seems to be optimum)
+    if(lineValues.empty()) break;
+    linnr += lineValues.size();
 
     // clear vectors and arrays before readin
     std::array<std::vector<double>,9> emptyBranches{};
@@ -208,11 +172,13 @@ void convertToRootFile(char* filename, char* outfilename)
     }
 
     rootfile.tree->Fill();
-
   }
+  cout << "read " << linnr << " lines from file: " << filename << endl;
 
   infile.close();
   rootfile.Write();
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  cout << "duration: " << chrono::duration_cast<chrono::microseconds>(end - start).count() / 1000. << " ms" << endl;
 }
 
 #ifndef __CINT__
