@@ -55,7 +55,7 @@ namespace RootToolBox {
   RootBranchData<T>* RootTreeData::getBranchData ( int index ) const
   {
 //     std::cout << "trying to get branch by index " << index << std::endl;
-    if (index >= 0 && index < __branchdata.size()) return boost::any_cast<RootToolBox::RootBranchData<T>*>(std::get<0>(__branchdata[index]));
+    if (index >= 0 && (uint)index < __branchdata.size()) return boost::any_cast<RootToolBox::RootBranchData<T>*>(std::get<0>(__branchdata[index]));
 //     if(index >= 0 && index < __bdata.size()) return boost::any_cast<RootBranchData<T> >(__bdata[index]);
     else std::cout << "index is out of range!" << std::endl;
 
