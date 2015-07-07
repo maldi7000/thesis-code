@@ -30,6 +30,9 @@ efficiency = .99; % the desired efficiency
 [phi_t, phi_y] = get_bin_values(phi_bin_inds,targets,outputs);
 [theta_t, theta_y] = get_bin_values(theta_bin_inds,targets,outputs);
 
+make_angular_occupancy_plot(phi_t,phi_bins, '\phi [\circ]');
+make_angular_occupancy_plot(theta_t,theta_bins, '\theta [\circ]');
+
 set(0,'DefaultFigureVisible','off') % suppress figure output of analyze_class_out. NOTE: only displaying disabled not the creation
 [S_phi,R_phi,A_phi] = analyze_class_out(phi_t,phi_y);
 [S_theta,R_theta,A_theta] = analyze_class_out(theta_t, theta_y);
@@ -46,6 +49,7 @@ make_angular_plot(S_theta_in, S_theta,theta_bins,'\theta [\circ]');
 end
 
 %% plotting function(s)
+% plot SNR_in, SNR_out and SNR gain depending on the angle
 function f = make_angular_plot(S_in,S_out,bins,angle)
     f = figure; hold on
     colors = colormap(lines(3));
@@ -56,6 +60,18 @@ function f = make_angular_plot(S_in,S_out,bins,angle)
     hold off
     grid, grid minor
     legend('SNR @ r \geq 0.99', 'SNR input', 'SNR gain', 'Location', 'Best');
+    xlabel(angle);
+    xlim([round(min(bins),-1) - 5, round(max(bins),-1) + 5]); % round min/max to the next 10 degrees
+end
+
+% plot the occupancy of the bins
+function f = make_angular_occupancy_plot(T,bins,angle)
+    f = figure; hold on
+    occ = cellfun(@length, T);
+    bar(bins,occ);
+    hold off
+    grid, grid minor
+    ylabel('# samples/bin')
     xlabel(angle);
     xlim([round(min(bins),-1) - 5, round(max(bins),-1) + 5]); % round min/max to the next 10 degrees
 end
