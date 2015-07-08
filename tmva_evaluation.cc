@@ -10,6 +10,8 @@
 #include <vector>
 #include <array>
 
+// chrono
+#include <chrono>
 
 // ROOT
 #include "TMVA/Reader.h"
@@ -28,8 +30,7 @@
 using namespace std;
 using namespace ROOT;
 using namespace RootToolBox;
-
-
+using std::chrono::high_resolution_clock;
 
 /**
  * load the FastBDT plugin (copied from framework)
@@ -121,12 +122,16 @@ void evaluate_input(char* weightfile, char* inputfile, char* outputfile)
   size_t nEntries = inputvalues[0].size();
   std::vector<double> outputs;
 
+  high_resolution_clock::time_point start = high_resolution_clock::now();
   for(size_t i = 0; i < nEntries; ++i) {
     for(size_t j = 0; j < input.size(); ++j) {
+
       input[j] = inputvalues[j][i];
     }
     outputs.push_back(reader.evaluate());
   }
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  cout << "duration: " << chrono::duration_cast<chrono::microseconds>(end-start).count() / 1000. << " ms" << endl;
 
   ofstream outfile(outputfile, ofstream::out);
   for(double d: outputs) outfile << d << endl;
@@ -145,7 +150,7 @@ int main(int argc, char* argv[])
     cout << "please provide: a weightfile, an inputfile and an outputfile (name)" << endl;
     return -1;
   }
-
+  cout << argv[1] << " " << argv[2] << " " << argv[3] << endl;
   evaluate_input(argv[1],argv[2],argv[3]);
 
   return 0;
