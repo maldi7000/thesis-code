@@ -62,7 +62,7 @@ for i=1:length(mins)
         htrue = histogram(y{i}(j,t{i}==1),A);
         hold off
         title(keyentries{iplot});
-        xlabel('network output');
+        xlabel('classifier output');
         ylabel('entries');
         legend('all samples', 'signal samples', 'Location', 'Best');
     end
