@@ -18,7 +18,6 @@
 #include "TTree.h"
 #include "TBranch.h"
 
-
 using namespace std;
 using namespace ROOT;
 
@@ -26,24 +25,31 @@ using namespace ROOT;
 const std::string treename = "ThreeHitSamplesTree";
 /** name of the branches in the TTree */
 const std::vector<std::string> branchnames = { "hit1X", "hit1Y", "hit1Z", "hit2X", "hit2Y", "hit2Z",
-                                               "hit3X", "hit3Y", "hit3Z", "layer1", "layer2", "layer3", "signal" };
+                                               "hit3X", "hit3Y", "hit3Z", "truth", "vxdid1", "vxdid2", "vxdid3",
+                                               "pT", "momentum", "charge", "pdg" };
 
 /** number of all branches containing a vector<double> */
 const size_t npositions = 9;
 
 /** number of all branches containing a vector<short> */
-const size_t nlayers = 3;
+const size_t nvxdids = 3;
+
+/** number of all branches containing momentum/charge information */
+const size_t nadditional = 3;
 
 /** helper struct that can be used to get the values from the root file */
 struct RootBranches {
   /** empty ctor initializes all pointers to NULL */
-  RootBranches() : signal(NULL) {
-    for(vector<double>*& vec : positions) vec = NULL;
-    for(vector<int>*& vec: layers) vec = NULL;
+  RootBranches() : pdg(nullptr), signal(nullptr) {
+    for(vector<double>*& vec : positions) vec = nullptr;
+    for(vector<unsigned>*& vec: vxdids) vec = nullptr;
+    for(vector<double>*& vec : additionalInfo) vec = nullptr;
   }
 
   std::array<std::vector<double>*, npositions> positions; /**< array of vector of doubles that hold the position branches */
-  std::array<std::vector<int>*, nlayers> layers; /**< array of vector of doubles that hold the layer branches */
+  std::array<std::vector<unsigned>*, nvxdids> vxdids; /**< array of vector of doubles that hold the vxdid branches */
+  std::array<std::vector<double>*, nadditional> additionalInfo; /**< array of vector of doubles that hold the additional Info Branches*/
+  std::vector<int>* pdg; /**< vector holding the pdg */
   std::vector<bool>* signal; /**< vector of bools for the signal branch */
 };
 
@@ -59,15 +65,26 @@ void setBranchAddresses(TTree* tree, RootBranches& branches)
       cout << "ERROR: while trying to set branch address for positions! name: " << branchnames[i] << endl;
     }
   }
-  for(size_t i = 0; i < nlayers; ++i) {
-    int setAd = tree->SetBranchAddress(branchnames[i + npositions].c_str(), &branches.layers[i]);
-    if( setAd != 0 /*&& setAd != 1*/) {
-      cout << "ERROR: while trying to set branch address for layers! name: " << branchnames[i + npositions] << endl;
+
+  if(tree->SetBranchAddress(branchnames[npositions].c_str(), &branches.signal) != 0) {
+    cout << "ERROR: while trying to set branch address for signal" << endl;
+  }
+
+  for(size_t i = 0; i < nvxdids; ++i) {
+    int setAd = tree->SetBranchAddress(branchnames[i + npositions + 1].c_str(), &branches.vxdids[i]);
+    if( setAd != 0 && setAd != 1) {
+      cout << "ERROR: while trying to set branch address for vxdids! name: " << branchnames[i + npositions + 1] << endl;
     }
   }
 
-  if(tree->SetBranchAddress(branchnames.back().c_str(), &branches.signal) != 0) {
-    cout << "ERROR: while trying to set branch address for signal" << endl;
+  for(size_t i=0; i < nadditional; ++i) {
+    if(tree->SetBranchAddress(branchnames[i + npositions + 1 + nvxdids].c_str(), &branches.additionalInfo[i]) != 0) {
+      cout << "ERROR: while trying to set branch address for additional info! name: " << branchnames[i+npositions+nvxdids+1] << endl;
+    }
+  }
+
+  if(tree->SetBranchAddress(branchnames.back().c_str(), &branches.pdg) != 0) {
+    cout << "ERROR: while trying to set branch address for pdg" << endl;
   }
 }
 
@@ -88,7 +105,7 @@ void getEvent(TTree* tree, RootBranches& branches, unsigned event)
  */
 void writeFileHeader(ofstream& outfile)
 {
-  outfile << "# sp_1_x  sp_1_y  sp_1_z  sp_2_x  sp_2_y  sp_2_z  sp_3_x  sp_3_y  sp_3_z  layer1  layer2  layer3  signal" << endl;
+  outfile << "# sp_1_x  sp_1_y  sp_1_z  sp_2_x  sp_2_y  sp_2_z  sp_3_x  sp_3_y  sp_3_z  vxdid1  vxdid2  vxdid3 pT momentum charge pdg signal" << endl;
 }
 
 /**
@@ -102,9 +119,13 @@ void writeToFile(const RootBranches& branches, ofstream& outfile)
     for (size_t j = 0; j < npositions; ++j){
       outfile << branches.positions[j]->operator[](i) << " ";
     }
-    for (size_t j = 0; j < nlayers; ++j ) {
-      outfile << branches.layers[j]->operator[](i) << " ";
+    for (size_t j = 0; j < nvxdids; ++j ) {
+      outfile << branches.vxdids[j]->operator[](i) << " ";
     }
+    for (size_t j = 0; j < nadditional; ++j) {
+      outfile << branches.additionalInfo[j]->operator[](i) << " ";
+    }
+    outfile << branches.pdg->operator[](i) << " ";
     outfile << branches.signal->operator[](i) << endl;
   }
 }
@@ -124,7 +145,7 @@ void convertToDatFile(char* filename, char* outfilename)
 
   ofstream outfile(outfilename, ofstream::out);
   // writeFileHeader(outfile); // ommit when using with MATLAB (TODO: find an easy (and fast) way in MATLAB to ignore comments)
-  
+
   // get the data event-wise and write them to the file immediately
   for(unsigned i = 0; i < tree->GetEntries(); ++i) {
     getEvent(tree, branches, i);
