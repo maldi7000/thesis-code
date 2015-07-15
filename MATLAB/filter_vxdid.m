@@ -17,6 +17,7 @@ function data = filter_vxdid( indata, option )
 VXDRANGE = [8480,10304; 16672,19520; 24864,26432; 33056,35424; 41248,44160; 49440,53408]; % vxdid layer edges in raw format
 
 % by Thomas Madlener
+
 %% input checks
 if nargin ~= 2, error('wrong number of input arguments'), end
 if (option > 7 || option < 0), error('option has to be in the range [0,7]'), end
