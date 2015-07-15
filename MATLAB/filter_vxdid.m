@@ -20,7 +20,7 @@ VXDRANGE = [8480,10304; 16672,19520; 24864,26432; 33056,35424; 41248,44160; 4944
 
 %% input checks
 if nargin ~= 2, error('wrong number of input arguments'), end
-if (option > 7 || option < 0), error('option has to be in the range [0,7]'), end
+if (option > 9 || option < 0), error('option has to be in the range [0,9]'), end
 
 %% main
 if option > 0 && option < 7
