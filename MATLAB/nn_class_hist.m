@@ -56,7 +56,7 @@ for i=1:length(mins)
     for j=1:length(mins{i})
         iplot = iplot + 1;
         subplot(nR,nC,iplot);
-        A = linspace(mins{i}(j), maxs{i}(j), 100);
+        A = linspace(mins{i}(j), maxs{i}(j), 50);
         hall = histogram(y{i}(j,:),A);
         hold on
         htrue = histogram(y{i}(j,t{i}==1),A);
