@@ -68,7 +68,7 @@ end
 function f = make_angular_occupancy_plot(T,bins,angle)
     f = figure; hold on
     occ = cellfun(@length, T);
-    bar(bins,occ);
+    bar(bins,occ,1);
     hold off
     grid, grid minor
     ylabel('# samples/bin')
