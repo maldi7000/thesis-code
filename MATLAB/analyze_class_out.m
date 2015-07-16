@@ -1,7 +1,7 @@
-function [SNR,EFF,auroc] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
+function [SNR,EFF] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 %ANALYZE_CLASS_OUT analyzes the outputs of classifiers
 %
-% [SNR,EFF,AUROC] = analyze_class_out(T,Y,lb,ub,keyentries) .... TODO
+% [SNR,EFF] = analyze_class_out(T,Y,lb,ub,keyentries) .... TODO
 %
 % lb - lower boundary of varying threshold
 % ub - upper boundary of varying threshold
@@ -41,7 +41,7 @@ nnets = sum(cellfun(@(x) size(x,1), mins)); % get the the total number of output
 [nR,nC] = calc_layout(nnets);
 keyentries = check_and_handle(keyentries,nnets);
 
-fprintf('making SNR and efficiency plots\n')
+fprintf('calculating SNR and efficiency\n')
 b = linspace(lb,ub,100);
 S = zeros(length(b), nnets); R = S; % preallocate
 ib = 1; ie = 0;
@@ -51,66 +51,68 @@ for i=1:length(t) % loop over all cell-arrays
     [S(:,ib:ie),R(:,ib:ie)] = snr_eff_range(t{i}, y{i}, b);
     S_in(ib:ie) = calc_snr(t{i},1);
 end
-figure; % return handle?
-plot(b,S);
-title('signal-to-noise')
-xlabel('classification threshold')
-ylabel('SNR in output')
-legend(keyentries,'Location', 'Best')
-
-figure; % return handle?
-plot(b,R);
-title('efficiency')
-xlabel('classification threshold')
-ylabel('r')
-legend(keyentries,'Location','Best')
-
-% figure;
-% [h,l1,l2] = plotyy(b,R,b,S);
-% l1.LineWidth = 3;
-% l2.LineWidth = 3;
-% ylabel(h(1), 'efficiency')
-% ylabel(h(2), 'SNR_{out}')
-% xlabel('classification threshold')
-
-
-figure; % return handle?
-plot(R,S./repmat(S_in,size(S,1),1)) % blow up input SNR to 'full' matrix
-% plot(R,S./repmat(S_in,size(S,1),1), 'LineWidth', 3) % thicker lines for presentations and reports
-title('SNR gain vs. efficiency')
-xlabel('efficiency')
-ylabel('SNR_{out}/SNR_{in}')
-xlim([0.99,1]) % set xaxis range to 'interesting' range
-legend(keyentries,'Location','Best')
-
-% TODO: ROC only works with 0 and 1 targets
-figure; % return handle?
-fprintf('making ROC plot\n')
-iplot = 0;
-col = colormap(lines(nnets)); % determine line colors automatically
-auroc = ones(nnets,1)*0.5; % save the areas under the curve into array
-for i=1:size(y,1)
-    for j=1:size(y{i},1)
-        iplot = iplot + 1; % increase plot counter
-        [TT,FK,~] = roc(t{i}, y{i}(j,:));
-        plot(FK,TT, 'Color', col(iplot,:))
-%         plot(FK,TT, 'Color', col(iplot,:), 'LineWidth', 3) % thicker lines
-        hold on
-        auroc(iplot) = trapz(FK,TT); % calculate auroc using trapez rule
-        fprintf('integrated ROC for %s: %f\n', keyentries{iplot}, auroc(iplot)) % using trapezrule to get the area under the curve
-%         keyentries{iplot} = sprintf('%s, AUC = %.03f', keyentries{iplot}, auroc(iplot));
-    end
-end
-line([0,1],[0,1],'Color',[0.7,0.7,0.7]); % plot diagonal
-title('ROC');
-xlabel('False Positive Rate')
-ylabel('True Positive Rate')
-legend(keyentries, 'Location', 'Best');
-hold off
 
 if nargout >= 2
     SNR = S;
     EFF = R;
+end
+
+if nargin == 0
+    figure; % return handle?
+    plot(b,S);
+    title('signal-to-noise')
+    xlabel('classification threshold')
+    ylabel('SNR in output')
+    legend(keyentries,'Location', 'Best')
+
+    figure; % return handle?
+    plot(b,R);
+    title('efficiency')
+    xlabel('classification threshold')
+    ylabel('r')
+    legend(keyentries,'Location','Best')
+
+    figure;
+    [h,l1,l2] = plotyy(b,R,b,S);
+    l1.LineWidth = 3;
+    l2.LineWidth = 3;
+    ylabel(h(1), 'efficiency')
+    ylabel(h(2), 'SNR_{out}')
+    xlabel('classification threshold')
+
+    figure; % return handle?
+    plot(R,S./repmat(S_in,size(S,1),1)) % blow up input SNR to 'full' matrix
+    % plot(R,S./repmat(S_in,size(S,1),1), 'LineWidth', 3) % thicker lines for presentations and reports
+    title('SNR gain vs. efficiency')
+    xlabel('efficiency')
+    ylabel('SNR_{out}/SNR_{in}')
+    xlim([0.99,1]) % set xaxis range to 'interesting' range
+    legend(keyentries,'Location','Best')
+
+    % TODO: ROC only works with 0 and 1 targets
+    figure; % return handle?
+    fprintf('making ROC plot\n')
+    iplot = 0;
+    col = colormap(lines(nnets)); % determine line colors automatically
+    auroc = ones(nnets,1)*0.5; % save the areas under the curve into array
+    for i=1:size(y,1)
+        for j=1:size(y{i},1)
+            iplot = iplot + 1; % increase plot counter
+            [TT,FK,~] = roc(t{i}, y{i}(j,:));
+            plot(FK,TT, 'Color', col(iplot,:))
+    %         plot(FK,TT, 'Color', col(iplot,:), 'LineWidth', 3) % thicker lines
+            hold on
+            auroc(iplot) = trapz(FK,TT); % calculate auroc using trapez rule
+            fprintf('integrated ROC for %s: %f\n', keyentries{iplot}, auroc(iplot)) % using trapezrule to get the area under the curve
+    %         keyentries{iplot} = sprintf('%s, AUC = %.03f', keyentries{iplot}, auroc(iplot));
+        end
+    end
+    line([0,1],[0,1],'Color',[0.7,0.7,0.7]); % plot diagonal
+    title('ROC');
+    xlabel('False Positive Rate')
+    ylabel('True Positive Rate')
+    legend(keyentries, 'Location', 'Best');
+    hold off
 end
 end
 
