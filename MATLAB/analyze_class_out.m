@@ -1,7 +1,7 @@
 function [SNR,EFF,auroc] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 %ANALYZE_CLASS_OUT analyzes the outputs of classifiers
 %
-% [SNR,EFF,AUROC] = analyze_class_out(T,Y,keyentries) .... TODO
+% [SNR,EFF,AUROC] = analyze_class_out(T,Y,lb,ub,keyentries) .... TODO
 %
 % lb - lower boundary of varying threshold
 % ub - upper boundary of varying threshold
@@ -9,6 +9,8 @@ function [SNR,EFF,auroc] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 % EFF - maximum efficiency that can be reached with each classifier
 % SNR - signal-to-noise ratio at the maximum efficiency
 % -> desired: if not passed automatically determine (or set to 0,1 maybe)
+
+% by Thomas Madlener
 
 %% input handling and checking
 % copied from nn_class_hist
@@ -40,7 +42,7 @@ nnets = sum(cellfun(@(x) size(x,1), mins)); % get the the total number of output
 keyentries = check_and_handle(keyentries,nnets);
 
 fprintf('making SNR and efficiency plots\n')
-b = linspace(lb,ub,50);
+b = linspace(lb,ub,100);
 S = zeros(length(b), nnets); R = S; % preallocate
 ib = 1; ie = 0;
 S_in = zeros(1,length(nnets)); % preallocate input SNR-ratio
@@ -63,10 +65,19 @@ xlabel('classification threshold')
 ylabel('r')
 legend(keyentries,'Location','Best')
 
+% figure;
+% [h,l1,l2] = plotyy(b,R,b,S);
+% l1.LineWidth = 3;
+% l2.LineWidth = 3;
+% ylabel(h(1), 'efficiency')
+% ylabel(h(2), 'SNR_{out}')
+% xlabel('classification threshold')
+
+
 figure; % return handle?
 plot(R,S./repmat(S_in,size(S,1),1)) % blow up input SNR to 'full' matrix
 % plot(R,S./repmat(S_in,size(S,1),1), 'LineWidth', 3) % thicker lines for presentations and reports
-title('SNR vs. efficiency')
+title('SNR gain vs. efficiency')
 xlabel('efficiency')
 ylabel('SNR_{out}/SNR_{in}')
 xlim([0.99,1]) % set xaxis range to 'interesting' range
@@ -87,7 +98,7 @@ for i=1:size(y,1)
         hold on
         auroc(iplot) = trapz(FK,TT); % calculate auroc using trapez rule
         fprintf('integrated ROC for %s: %f\n', keyentries{iplot}, auroc(iplot)) % using trapezrule to get the area under the curve
-        keyentries{iplot} = sprintf('%s, AUC = %.03f', keyentries{iplot}, auroc(iplot));
+%         keyentries{iplot} = sprintf('%s, AUC = %.03f', keyentries{iplot}, auroc(iplot));
     end
 end
 line([0,1],[0,1],'Color',[0.7,0.7,0.7]); % plot diagonal
