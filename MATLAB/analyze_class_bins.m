@@ -1,7 +1,7 @@
-function [out_args] = analyze_class_bins(t, y, feat, nbins)
+function [out_args] = analyze_class_bins(t, y, feat, nbins, name)
 %ANALYZE_CLASS_BINS analyzes the classifier output in bins of a feature
 %
-% analyze_class_bins(T,Y, FEAT, N) takes as inputs the targets T and the
+% analyze_class_bins(T,Y, FEAT, N, name) takes as inputs the targets T and the
 % outputs Y of a classifier together with a vector of same length FEAT that
 % contains the feature that shall be used to bin the data into N bins.
 
@@ -9,6 +9,14 @@ function [out_args] = analyze_class_bins(t, y, feat, nbins)
 
 %% inupt checks and 'global' definitions
 if nargin < 4, nbins = 50; end
+if length(t) ~= length(y), error('targets and outputs must be of same length'), end
+if length(t) ~= length(feat), error('targets and features must be of same length'), end
+if (~isvector(t) || ~isvector(y) || ~isvector(feat))
+    error('targets, outputs and features have to be vectors')
+end
+if ~isscalar(nbins), error('number of bins has to be a scalar'), end
+if nargin < 5, name = 'feature'; end % standard name
+
 efficiency = .99; % desired efficiency
 
 %% main
@@ -23,12 +31,13 @@ set(0,'DefaultFigureVisible','on')
 S = get_snr_at_efficiency(snr,eff,efficiency);
 S_in = get_input_snr(bint);
 
-make_bin_plot(S_in, S, bincenters);
-make_occupancy_plot(bint,bincenters);
+make_bin_plot(S_in, S, bincenters, name);
+make_occupancy_plot(bint,bincenters, name);
 end
 
 %% plotting functions
-function f = make_bin_plot(S_in,S,bins)
+% plot the input SNR, the output SNR and the SNR gain for each bin
+function f = make_bin_plot(S_in,S,bins, xlab)
     f = figure; hold on;
     colors = colormap(lines(3));
     bar(bins, S, 'FaceColor', colors(1,:));
@@ -38,18 +47,24 @@ function f = make_bin_plot(S_in,S,bins)
     hold off
     grid, grid minor
     legend('SNR @ r \geq 0.99', 'SNR input', 'SNR gain', 'Location', 'Best')
+    title('classifier performance')
+    xlabel(xlab)
 end
 
-function f = make_occupancy_plot(t,bins)
+% plot the occupancy of each bin
+function f = make_occupancy_plot(t,bins, xlab)
     f = figure;
     occ = cellfun(@length, t);
     bar(bins,occ,1);
     grid, grid minor
     ylabel('# samples / bin')
     hold off
+    title('occupancy')
+    xlabel(xlab)
 end
 
 %% helper functions
+% get the target and output values for each feature bin
 function [bin_t, bin_y] = get_bin_values(t,y,inds)
     ninds = length(unique(inds));
     bin_t = cell(ninds,1);
@@ -62,7 +77,7 @@ end
 
 % get the SNR for a given efficiency
 % CAUTION: for this to work properly R has to be monotonically increasing
-% in each column!
+% in each column AND it has to be greater than r at one point!
 function SNR = get_snr_at_efficiency(S,R,r)
     gtr = R >= r; % mark all values, that are larger than a given value
     gtr = diff(gtr); % find the jump
