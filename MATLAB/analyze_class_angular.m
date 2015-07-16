@@ -108,7 +108,7 @@ end
 
 % get the SNR for a given efficiency
 % CAUTION: for this to work properly R has to be monotonically increasing
-% in each column!
+% in each column AND if there is at least one entry that is greater than r!
 function SNR = get_snr_at_efficiency(S,R,r)
     gtr = R >= r; % mark all values, that are larger than a given value
     gtr = diff(gtr); % find the jump
