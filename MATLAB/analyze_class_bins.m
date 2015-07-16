@@ -23,10 +23,10 @@ efficiency = .99; % desired efficiency
 [~,e,binds] = histcounts(feat,nbins);
 bincenters = e(1:end-1) + diff(e)/2; % transform edge values to center values (of bins)
 [bint, biny] = get_bin_values(t,y,binds);
+maxy = max(cellfun(@max, biny));
+miny = min(cellfun(@min, biny));
 
-set(0,'DefaultFigureVisible','off') % suppress figure output of analyze_class_out. NOTE: only displaying disabled not the creation
-[snr,eff] = analyze_class_out(bint,biny);
-set(0,'DefaultFigureVisible','on')
+[snr,eff] = analyze_class_out(bint,biny, miny, maxy); % varying between min and max might be a bit of an overkill
 
 S = get_snr_at_efficiency(snr,eff,efficiency);
 S_in = get_input_snr(bint);
