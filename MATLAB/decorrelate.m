@@ -1,11 +1,13 @@
-function [Z] = decorrelate(X, varargin)
+function [Z,U,D] = decorrelate(X, varargin)
 %DECORRELATE perform decorrelation on given data
 %
-% Z = decorrelate(X, normalize) takes NxM data matrix X and returns decorrelated NxM 
+% [Z,U,D] = decorrelate(X, normalize) takes NxM data matrix X and returns decorrelated NxM 
 % data matrix Z, where N is the number of observations and M is the
 % dimension of one variable. If normalize is true (default is false) the
 % returned data will be normalized such that the covariance matrix is the
 % unity matrix.
+% returns the eigendecomposition of the covariance matrix of X as well if
+% desired: cov(X) = U*D*U' (cov(X) is symmetric)
 
 % by Thomas Madlener, 2015
 
