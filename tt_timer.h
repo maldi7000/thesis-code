@@ -22,13 +22,13 @@ namespace timing {
 
     void toc(); /**< stop the time measurement */
 
-    std::string print() const; /**< print the name of the timer and the elapsed time */
+    std::string print(); /**< print the name of the timer and the elapsed time */
 
     /**
      * get the time measured by the timer.
      * NOTE: if the clock has only been started (call to tic()), but not stopped, it is stopped by a call to this function!)
      */
-    double time() const;
+    double time();
     
     std::string getName() const { return m_name; } /**< get the name of the timer */
 
@@ -82,20 +82,20 @@ namespace timing {
     m_end = std::chrono::high_resolution_clock::now();
   }
 
-  double TicTocTimer::time() const
+  double TicTocTimer::time()
   {
     if(!m_tocked) toc();
     return std::chrono::duration_cast<std::chrono::nanoseconds>(m_end - m_start).count() / m_convFactor;
   }
 
-  std::string TicTocTimer::print() const
+  std::string TicTocTimer::print()
   {
     std::stringstream ss{};
     ss << m_name << " elapsed time: " << time() << " " << getUnit();
     return ss.str();
   }
   
-  std::ostream& operator<<(std::ostream& os, const TicTocTimer& timer) {
+  std::ostream& operator<<(std::ostream& os, TicTocTimer& timer) {
     os << timer.print();
     return os;
   }
