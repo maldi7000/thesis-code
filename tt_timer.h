@@ -24,7 +24,10 @@ namespace timing {
 
     std::string print() const; /**< print the name of the timer and the elapsed time */
 
-    /** get the time measured by the timer (if possible), if only tic has been called a negative time is returned */
+    /**
+     * get the time measured by the timer.
+     * NOTE: if the clock has only been started (call to tic()), but not stopped, it is stopped by a call to this function!)
+     */
     double time() const;
     
     std::string getName() const { return m_name; } /**< get the name of the timer */
@@ -81,7 +84,7 @@ namespace timing {
 
   double TicTocTimer::time() const
   {
-    if(!m_tocked) return -1;
+    if(!m_tocked) toc();
     return std::chrono::duration_cast<std::chrono::nanoseconds>(m_end - m_start).count() / m_convFactor;
   }
 
