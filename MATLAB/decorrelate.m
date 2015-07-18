@@ -3,7 +3,7 @@ function [Z,U,D] = decorrelate(X, varargin)
 %
 % [Z,U,D] = decorrelate(X, normalize) takes NxM data matrix X and returns decorrelated NxM 
 % data matrix Z, where N is the number of observations and M is the
-% dimension of one variable. If normalize is true (default is false) the
+% dimension of one variable. If normalize is true (default is true) the
 % returned data will be normalized such that the covariance matrix is the
 % unity matrix.
 % returns the eigendecomposition of the covariance matrix of X as well if
@@ -17,7 +17,7 @@ if ~isempty(varargin)
     validateattributes(varargin{1}, {'logical'}, {'nonnan'}, 'decorrelate', 'normalize');
     normalize = varargin{1};
 else
-    normalize = false;
+    normalize = true;
 end
 
 % calculate covariance matrix estimate
