@@ -26,9 +26,14 @@ int main(int argc, char* argv[])
   if(argc == 3) {
     outputfilename = std::string(argv[2]);
   }
+  int depth = 3;
+  if(argc == 4) {
+    int d = atoi(argv[3]);
+    if(d > 0) depth = d;
+  }
 
   TicTocTimer timer(1000000); // measure time in ms
-  
+
   std::fstream datastr(argv[1], std::fstream::in);
   std::string line;
   std::vector<std::vector<double> > data;
@@ -43,8 +48,7 @@ int main(int argc, char* argv[])
     }
     data.push_back(row);
   }
-  timer.toc();
-  std::cout << "DONE. " << timer << std::endl;
+  std::cout << "DONE. " << timer << std::endl; // automatically calls toc on the timer
 
   std::cout << "creating FeatureBinnings ... " << std::flush;
   timer.tic();
@@ -56,7 +60,6 @@ int main(int argc, char* argv[])
     }
     featBins.push_back(FeatureBinning<double>(8, feature.begin(), feature.end() ));
   }
-  timer.toc();
   std::cout << "DONE. " << timer << std::endl;
 
   std::cout << "creating EventSamples ... " << std::flush;
@@ -70,14 +73,12 @@ int main(int argc, char* argv[])
     }
 
     eventSamp.AddEvent(bins, 1.0, signal);
-  }
-  timer.toc();
+  };
   std::cout << "DONE. " << timer << std::endl;
 
   std::cout << "training FastBDT ...  " << std::flush;
   timer.tic();
-  ForestBuilder fbdt(eventSamp, 100, 0.1, 0.5, 3);
-  timer.toc();
+  ForestBuilder fbdt(eventSamp, 100, 0.1, 0.5, depth);
   std::cout << "DONE. " << timer << std::endl;
 
   std::cout << "writing XML file ... " << std::flush;
@@ -86,7 +87,6 @@ int main(int argc, char* argv[])
   FBDT_Writer writer(treexml);
   writer.writeToFile(fbdt, featBins);
   treexml.close();
-  timer.toc();
   std::cout << "DONE. " << timer << std::endl;
 
   return 0;
