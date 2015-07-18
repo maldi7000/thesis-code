@@ -2,7 +2,9 @@
 # NOTE: at the moment this does not compile unless a basf2 environment is set up! (it also does not run!)
 
 CC=g++
-CXXFLAGS=-std=c++11 -Wall -ggdb3
+# CXXFLAGS=-std=c++11 -Wall -ggdb3
+# opt builds
+CXXFLAGS=-std=c++11 -Wall -O3
 #INCL=-I/home/asehephy/root/include
 #INCL=-I/home/Applications/root/include
 INCL=-I$(shell root-config --incdir)
