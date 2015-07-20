@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
   std::cout << "DONE. " << timer << std::endl;
 
   size_t nInputs = featBins.size();
-  size_t nLevels = featBins[0].GetNLevels();
   // read in data and pass it to the fbdt to be analyzed
   std::fstream datafs(argv[2], std::fstream::in);
   std::string line;
@@ -43,7 +42,7 @@ int main(int argc, char* argv[])
   while(std::getline(datafs, line)) {
     if(line.empty()) break;
     std::stringstream sin{line};
-    std::vector<unsigned> bins(nLevels);
+    std::vector<unsigned> bins(nInputs);
     for(size_t i = 0; i < nInputs; ++i) {
       double val;
       sin >> val;
@@ -54,9 +53,10 @@ int main(int argc, char* argv[])
   timer.toc();
   std::cout << "DONE. " << timer << std::endl;
 
+  std::vector<double> outputs;
+  outputs.reserve(data.size());
   std::cout << "evaluating data ... " << std::flush;
   timer.tic();
-  std::vector<double> outputs;
   for(const auto& bins: data) {
     outputs.push_back(fbdt.Analyse(bins));
   }
