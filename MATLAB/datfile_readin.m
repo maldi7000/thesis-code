@@ -50,6 +50,12 @@ if length(files) == 1 % if there is only one file do not put the values into a c
     concat = true;
 end
 
+% handle the directory name. the structs returned by do not have
+% information on the path!
+directories = strsplit(filename,'/'); % split full (relative) name at /
+dirname = strjoin(directories(1:end-1), '/'); % join all but the last part (i.e. the filename) together again with '/' as delimiter
+if ~isempty(dirname), dirname = [dirname, '/']; end % add '/' after last directory name (as delimiter to the filename) only if necessary
+
 if ~concat
     x = cell(size(files)); % pre allocate cell
 else
@@ -57,11 +63,12 @@ else
 end
 
 for i=1:length(files)
-    fId = fopen(files(i).name, 'r');
+    fname = [dirname, files(i).name];
+    fId = fopen(fname, 'r');
     if fId < 0
-        error('Couldnot open file: %s', files(i).name)
+        error('Couldnot open file: %s', fname)
     else
-        fprintf('Opened file: %s\n', files(i).name)
+        fprintf('Opened file: %s\n', fname)
     end
 
     % perform read in
