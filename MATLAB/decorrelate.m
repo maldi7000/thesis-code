@@ -22,7 +22,7 @@ else
     normalize = true;
 end
 
-if nargin ~= 1 && nargin ~= 3
+if (nargin ~= 1 && nargin ~= 3) && (~isempty(varargin) && nargin ~= 4)
     error('wrong number of input arguments')
 end
 
@@ -30,7 +30,7 @@ calc_trans = false;
 if nargin ~= 3, calc_trans = true; end
 if nargin == 3
     if isempty(U) || isempty(D)
-        warning('one of the passed transformation matrices is empty. Calculating them from input data')
+%         warning('one of the passed transformation matrices is empty. Calculating them from input data')
         calc_trans = true;
     end
     if size(X,2) ~= size(U,1) || size(X,2) ~= size(D,1)
