@@ -27,21 +27,21 @@ if (nargin ~= 1 && nargin ~= 3) && (~isempty(varargin) && nargin ~= 4)
 end
 
 calc_trans = false;
-if nargin ~= 3, calc_trans = true; end
-if nargin == 3
-    if isempty(U) || isempty(D)
+if nargin == 1, calc_trans = true; end
+if nargin > 1, % only 3 or 4 input arguments allowed at this point
+    if isempty(U) || isempty(D) % passing empty matrices is needed to suppress normalization sometimes
 %         warning('one of the passed transformation matrices is empty. Calculating them from input data')
         calc_trans = true;
     end
-    if size(X,2) ~= size(U,1) || size(X,2) ~= size(D,1)
+    if (size(X,2) ~= size(U,1) || size(X,2) ~= size(D,1)) && ~calc_trans
         warning('one of the passed transformation matrices has the wrong dimensions. Calculating them from input data')
         calc_trans = true;
     end
-    if size(U) ~= size(D)
+    if any(size(U) ~= size(D)) && ~calc_trans
         warning('transformation matrices do not have the same size. Calculating them from input data')
         calc_trans = true;
     end
-    if any(size(U) ~= size(U')) || any(size(D) ~= size(D'))
+    if any(size(U) ~= size(U')) || any(size(D) ~= size(D')) && ~calc_trans
         warning('one of the transformation matrices is not a square matrix. Calculating them from input data')
         calc_trans = true;
     end
