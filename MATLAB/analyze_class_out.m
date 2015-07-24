@@ -1,13 +1,14 @@
-function [SNR,EFF] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
+function [SNR,EFF,CUTS] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 %ANALYZE_CLASS_OUT analyzes the outputs of classifiers
 %
-% [SNR,EFF] = analyze_class_out(T,Y,lb,ub,keyentries) .... TODO
+% [SNR,EFF,CUTS] = analyze_class_out(T,Y,lb,ub,keyentries) .... TODO
 %
 % lb - lower boundary of varying threshold
 % ub - upper boundary of varying threshold
 % TODO: return values
 % EFF - maximum efficiency that can be reached with each classifier
 % SNR - signal-to-noise ratio at the maximum efficiency
+% CUT - cut values corresponding to the efficiency and SNR values
 % -> desired: if not passed automatically determine (or set to 0,1 maybe)
 
 % by Thomas Madlener
@@ -54,9 +55,10 @@ for i=1:length(t) % loop over all cell-arrays
     S_in(ib:ie) = calc_snr(t{i},1);
 end
 
-if nargout >= 2
+if nargout >= 1
     SNR = S;
     EFF = R;
+    CUTS = b';
 end
 
 if nargout == 0
