@@ -22,7 +22,7 @@ end
 nThetaBins = 28; % yields approx 5 deg per bin
 nPhiBins = 72; % yields 5 deg per bin
 
-cutvalue = 0.5; % TODO; CALCULATE THIS FROM INPUT DATA!
+cutvalue = calculate_cut(targets,outputs,0.99);
 %% function main body
 [~,theta,phi] = cart2sph_basf2(inputs(:,1:3));
 % analyze_class_bins_dep(targets,outputs,phi,nPhiBins, '\phi [\circ]'); % old version of function for other plots
