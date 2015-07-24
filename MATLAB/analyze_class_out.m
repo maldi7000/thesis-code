@@ -42,7 +42,9 @@ nnets = sum(cellfun(@(x) size(x,1), mins)); % get the the total number of output
 keyentries = check_and_handle(keyentries,nnets);
 
 fprintf('calculating SNR and efficiency\n')
-b = linspace(lb,ub,100);
+support = 300; % make the number of support points dependent on deisire for plots
+if nargout == 0, support = 100; end
+b = linspace(lb,ub,support);
 S = zeros(length(b), nnets); R = S; % preallocate
 ib = 1; ie = 0;
 S_in = zeros(1,length(nnets)); % preallocate input SNR-ratio
@@ -57,7 +59,7 @@ if nargout >= 2
     EFF = R;
 end
 
-if nargin == 0
+if nargout == 0
     figure; % return handle?
     plot(b,S);
     title('signal-to-noise')
@@ -74,8 +76,8 @@ if nargin == 0
 
     figure;
     [h,l1,l2] = plotyy(b,R,b,S);
-    l1.LineWidth = 3;
-    l2.LineWidth = 3;
+%     l1.LineWidth = 3;
+%     l2.LineWidth = 3;
     ylabel(h(1), 'efficiency')
     ylabel(h(2), 'SNR_{out}')
     xlabel('classification threshold')
