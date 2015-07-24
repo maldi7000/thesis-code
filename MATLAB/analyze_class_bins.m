@@ -43,7 +43,7 @@ bincenters = e(1:end-1) + diff(e) / 2; % calculate the bin centers from the bin 
 [bin_r, bin_s_gain] = calculate_bin_performance(bint,biny,cutval);
 
 make_bin_plot(bincenters,bin_r,bin_s_gain,name);
-
+make_occ_hist(bincenters,bint,name);
 end
 
 %% plotting functions
@@ -64,6 +64,24 @@ function f = make_bin_plot(binc, eff, s_gain, xlab)
     grid, grid minor
     line(xlim,[0.99,0.99],'Color','k')
     xlabel(xlab);
+    title('classifier performance')
+end
+
+% make an occupancy histogram
+function f = make_occ_hist(binc, t, xlab)
+    occ = cellfun(@length, t);
+    sig = cellfun(@(x) sum(x==1), t);
+    f = figure;
+    bar(binc,occ,1);
+    if sig ~= occ
+        hold on
+        bar(binc,sig,1,'FaceColor', 'r')
+        hold off
+        legend('all samples', 'signal samples', 'Location', 'Best')
+    end
+    ylabel('# samples / bin')
+    xlabel(xlab)
+    title('occupancy')
 end
 
 %% helper functions
