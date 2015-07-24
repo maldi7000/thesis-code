@@ -27,8 +27,8 @@ cutvalue = calculate_cut(targets,outputs,0.99);
 [~,theta,phi] = cart2sph_basf2(inputs(:,1:3));
 % analyze_class_bins_dep(targets,outputs,phi,nPhiBins, '\phi [\circ]'); % old version of function for other plots
 % analyze_class_bins_dep(targets,outputs,theta,nThetaBins, '\theta [\circ]'); % old version of function for other plots
-analyze_class_bins(targets,outputs,cutvalue,phi,nPhiBins, '\phi [\circ]');
-analyze_class_bins(targets,outputs,cutvalue,theta,nThetaBins, '\theta [\circ]');
+analyze_class_bins(targets,outputs,phi,nPhiBins, cutvalue,'\phi [\circ]');
+analyze_class_bins(targets,outputs,theta,nThetaBins, cutvalue, '\theta [\circ]');
 end
 
 %% helper functions
