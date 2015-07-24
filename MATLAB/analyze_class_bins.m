@@ -1,9 +1,11 @@
-function [out_args] = analyze_class_bins(t, y, feat, nbins, name)
-%ANALYZE_CLASS_BINS analyzes the classifier output in bins of a feature
+function [out_args] = analyze_class_bins_dep(t, y, feat, nbins, name)
+%ANALYZE_CLASS_BINS_DEP analyzes the classifier output in bins of a feature
 %
-% analyze_class_bins(T,Y, FEAT, N, name) takes as inputs the targets T and the
+% analyze_class_bins_dep(T,Y, FEAT, N, name) takes as inputs the targets T and the
 % outputs Y of a classifier together with a vector of same length FEAT that
 % contains the feature that shall be used to bin the data into N bins.
+%
+% WARNING: somewhat deprecated: new version available
 
 % by Thomas Madlener
 
