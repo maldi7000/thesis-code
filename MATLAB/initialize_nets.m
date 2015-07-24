@@ -39,7 +39,8 @@ end
 
 % for reproducibility not using cellfun here as there the order of access
 % is not fixed and should not be relied on (see help cellfun). Using loop
-% instead
+% instead -> although seems to not be very delicate
+% nets = cellfun(@(net) initlay(net), nets, 'UniformOutput', false);
 for i = 1:size(nets,1)
     for j = 1:size(nets,2)
         nets{i,j} = initlay(nets{i,j});
