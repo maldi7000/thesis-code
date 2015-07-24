@@ -16,8 +16,21 @@ function [ bdt ] = train_bdt(X,T,N,lRate,varargin)
 
 %% define a treeTemplate that is used for boosting and also the boosting algorithm
 tempTree = templateTree(varargin{:}); % pass along varargin to tempTree
-boostAlg = 'AdaBoostM1'; % default is AdaBoostM1
+% boostAlg = 'AdaBoostM1'; % default is AdaBoostM1
+boostAlg = 'LSBoost';
+
+%%%%%% CLASSIFICATION COST TEST
+% a = 1; % a==1 is default -> both misclassifictios equivalent. a > 0
+% cost = struct;
+% cost.ClassNames = [-1,1];
+% cost.ClassificationCosts = [0,0.5;1,0]; % this way missclassified signals should be penalised
+
+%%%%%%
+
 
 bdt = fitensemble(X,T,boostAlg,N,tempTree,...
-    'nprint',25, 'LearnRate', lRate);
+    'nprint',25, 'LearnRate', lRate) %,...
+%     'Prior', 'Uniform',...
+%     'Cost', [0,2;1,0]);
+%     'Cost', [0,2;1,0]);
 end
