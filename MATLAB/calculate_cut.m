@@ -14,7 +14,7 @@ if nargin < 3, efficiency = 0.99; end
 if length(targets) ~= length(outputs), error('targets and output must be of the same length'), end
 if ~isvector(targets) || ~isvector(outputs), error('targets and outputs have to be passed as vectors'), end
 
-[lb, ub] = calc_boundaries(outputs,targets, efficiency)
+[lb, ub] = calc_boundaries(outputs,targets, efficiency);
 [~,R,C] = analyze_class_out(targets,outputs,lb,ub);
 gtr = R >= efficiency;
 c = C(gtr); % get all possible cut values (yielding a good enough efficiency)
