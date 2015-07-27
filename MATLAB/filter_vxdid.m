@@ -1,9 +1,10 @@
-function data = filter_vxdid( indata, option )
+function [data,inds] = filter_vxdid( indata, option )
 %FILTER_VXDID filters the data by the information obtainable from the VxdID
 %
-% DATA = filter_vxdid(INDATA, OPTION) takes an 17xN matrix INDATA and returns
+% [DATA,INDS] = filter_vxdid(INDATA, OPTION) takes an 17xN matrix INDATA and returns
 % a 17xN matrix DATA, where the output has been sorted according to the
-% passed OPTION.
+% passed OPTION. Second return argument INDS returns the indices of the
+% DATA samples in the original INDATA.
 %
 % The VxdIds have to be stored in the columns 10,11,12
 %
@@ -24,29 +25,33 @@ if (option > 9 || option < 0), error('option has to be in the range [0,9]'), end
 
 %% main
 if option > 0 && option < 7
-    data = innerlayer(indata,option, VXDRANGE);
+    [data, inds] = innerlayer(indata,option, VXDRANGE);
 else
     layers = get_layers(indata(10:12,:),VXDRANGE); % get the layer numbers
     l_diff = diff(layers); % calculate the difference between layers
     d_prod = prod(l_diff); % multiply the layer differences in each sample to differentiate below
 end
 if option == 0
-    data = indata(:,d_prod == 1); % return only the data set where the layer increased by exactly one in each layer
+    inds = d_prod == 1;
+    data = indata(:,inds); % return only the data set where the layer increased by exactly one in each layer
 end,
 if option == 7
-    data = indata(:,d_prod ~= 1); % return data where the difference in layers is not equal to one
+    inds = d_prod ~= 1;
+    data = indata(:,inds); % return data where the difference in layers is not equal to one
 end
 if option == 8
-    data = indata(:,d_prod == 0);
+    inds = d_prod == 0;
+    data = indata(:,inds);
 end
 if option == 9
-    data = indata(:,d_prod > 1);
+    inds = d_prod > 1;
+    data = indata(:,inds);
 end
 
 end
 
 %% helper functions
-function data = innerlayer(indata,lay,vrange)
+function [data,on_layer] = innerlayer(indata,lay,vrange)
     on_layer = indata(10,:) >= vrange(lay,1) & indata(10,:) <= vrange(lay,2);
     data = indata(:,on_layer);
 end
