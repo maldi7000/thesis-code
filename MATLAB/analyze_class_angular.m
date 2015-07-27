@@ -1,4 +1,4 @@
-function [ output_args ] = analyze_class_angular(targets,inputs,outputs)
+function [R, SNR, BINC] = analyze_class_angular(targets,inputs,outputs)
 %ANALYZE_CLASS_ANGULAR analyzes the performance of a classifier depending
 %on the angle
 %
@@ -9,6 +9,9 @@ function [ output_args ] = analyze_class_angular(targets,inputs,outputs)
 % angular bins) as NxM matrix: N samples, M variables per input
 % Y - classifier outputs for input X (or decorrelated version thereof)
 %
+% R - cell-array where first entry is efficiency for phi, second for theta
+% SNR - cell-array where first entry is SNR_gain for phi, second for theta
+% BINC - cell-array where first entry is phi bin centers, second for theta
 % TODO: documentation, implementation
 
 % by Thomas Madlener, 2015
@@ -27,8 +30,9 @@ cutvalue = calculate_cut(targets,outputs,0.99);
 [~,theta,phi] = cart2sph_basf2(inputs(:,1:3));
 % analyze_class_bins_dep(targets,outputs,phi,nPhiBins, '\phi [\circ]'); % old version of function for other plots
 % analyze_class_bins_dep(targets,outputs,theta,nThetaBins, '\theta [\circ]'); % old version of function for other plots
-analyze_class_bins(targets,outputs,phi,nPhiBins, cutvalue,'\phi [\circ]');
-analyze_class_bins(targets,outputs,theta,nThetaBins, cutvalue, '\theta [\circ]');
+R = cell(2,1); SNR = cell(2,1); BINC = cell(2,1);
+[R{1},SNR{1},BINC{1}] = analyze_class_bins(targets,outputs,phi,nPhiBins, cutvalue,'\phi [\circ]');
+[R{2},SNR{2},BINC{2}] = analyze_class_bins(targets,outputs,theta,nThetaBins, cutvalue, '\theta [\circ]');
 end
 
 %% helper functions

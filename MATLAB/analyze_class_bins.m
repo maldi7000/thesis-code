@@ -1,4 +1,4 @@
-function [R,SNR] = analyze_class_bins(t,y,feat,nbins,cutval,name)
+function [R,SNR,BINC] = analyze_class_bins(t,y,feat,nbins,cutval,name)
 %ANALYZE_CLASS_BINS analyzes the classifier performance in bins of a
 %feature
 %
@@ -14,6 +14,7 @@ function [R,SNR] = analyze_class_bins(t,y,feat,nbins,cutval,name)
 %
 % R - efficiency in the bins
 % SNR - snr in the bins of the feature
+% BINC - the bin centers
 
 % by Thomas Madlener, 2015
 
@@ -38,12 +39,14 @@ if nargin < 6 || ~ischar(name), name = 'feature'; end
 if calc_cut, cutval = calculate_cut(t,y,0.99); end % this should also work if there are only signal samples since only the efficiency is desired
 
 [~,e,binds] = histcounts(feat,nbins); % calculate the edges and the indices for binning the feature
-bincenters = e(1:end-1) + diff(e) / 2; % calculate the bin centers from the bin edges
+BINC = e(1:end-1) + diff(e) / 2; % calculate the bin centers from the bin edges
 [bint,biny] = get_bin_values(t,y,binds,nbins);
-[bin_r, bin_s_gain] = calculate_bin_performance(bint,biny,cutval);
+[R, SNR] = calculate_bin_performance(bint,biny,cutval);
 
-make_bin_plot(bincenters,bin_r,bin_s_gain,name);
-make_occ_hist(bincenters,bint,name);
+if nargout == 0 % only make plots if no output arguments are desired
+    make_bin_plot(BINC,R,SNR,name);
+    make_occ_hist(BINC,bint,name);
+end
 end
 
 %% plotting functions
