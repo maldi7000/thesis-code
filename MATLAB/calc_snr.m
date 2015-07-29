@@ -5,6 +5,8 @@ function [snr, nS, nN] = calc_snr(data, row, varargin)
 % the size of one sample and M is the total number of samples, and a number
 % ROW indicating the position where the signal flag is stored in the DATA
 % matrix.
+%
+% If there are only signal samples in the set, SNR = 1 is returned
 
 % by Thomas Madlener, 2015
 if nargin < 2
@@ -23,6 +25,6 @@ nN = sum(~data(row,:));
 if nN ~= 0 
     snr = nS / nN;
 else
-    warning('there are no noise samples in the data! Setting snr to nS!')
-    snr = nS;
+%     warning('there are no noise samples in the data! Setting snr to nS!')
+    snr = 1;
 end
