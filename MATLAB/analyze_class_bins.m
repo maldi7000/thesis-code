@@ -13,7 +13,7 @@ function [R,SNR,BINC] = analyze_class_bins(t,y,feat,nbins,cutval,name)
 % name: name of the feature (string)
 %
 % R - efficiency in the bins
-% SNR - snr in the bins of the feature
+% SNR - snr gain in the bins of the feature
 % BINC - the bin centers
 
 % by Thomas Madlener, 2015
