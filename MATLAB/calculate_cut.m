@@ -25,8 +25,11 @@ end
 % calculate the lower and upper boundary to be used to calculate the
 % cut value (via the analyze_class_out function)
 function [lb, ub] = calc_boundaries(y,t,r)
-    lb = min(y);
     [c,e] = histcounts(y(t==1),100);
     ind = cumsum(c) > (1 -r ) * length(y(t==1));
+    e(1) = []; % remove first entry from e to ensure that search
+               % extends to values above the actual cutvalue
+    lb = max(e(~ind));
+    if isempty(lb), lb = min(y); end % do not return an empty matrix!
     ub = min(e(ind));
 end
