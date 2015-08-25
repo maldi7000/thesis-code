@@ -6,9 +6,9 @@ function [SNR,EFF,CUTS] = analyze_class_out(t,y,lb,ub,keyentries,varargin)
 % lb - lower boundary of varying threshold
 % ub - upper boundary of varying threshold
 % TODO: return values
-% EFF - maximum efficiency that can be reached with each classifier
-% SNR - signal-to-noise ratio at the maximum efficiency
-% CUT - cut values corresponding to the efficiency and SNR values
+% EFF - efficiency that can be reached for a given cut value (CUTS)
+% SNR - signal-to-noise in the output at a given cut (CUTS)
+% CUTS - cut values corresponding to the efficiency and SNR values
 % -> desired: if not passed automatically determine (or set to 0,1 maybe)
 
 % by Thomas Madlener
