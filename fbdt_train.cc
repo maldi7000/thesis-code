@@ -23,12 +23,17 @@ int main(int argc, char* argv[])
     return 1;
   }
   std::string outputfilename{"fbdt_weights.xml"};
-  if(argc == 3) {
+  if(argc >= 3) {
     outputfilename = std::string(argv[2]);
   }
+  int nTrees = 100;
+  if(argc >= 4) {
+    int n = atoi(argv[3]);
+    if(n > 0) nTrees = n;
+  }
   int depth = 3;
-  if(argc == 4) {
-    int d = atoi(argv[3]);
+  if(argc >= 5) {
+    int d = atoi(argv[4]);
     if(d > 0) depth = d;
   }
 
@@ -78,7 +83,7 @@ int main(int argc, char* argv[])
 
   std::cout << "training FastBDT ...  " << std::flush;
   timer.tic();
-  ForestBuilder fbdt(eventSamp, 100, 0.1, 0.5, depth);
+  ForestBuilder fbdt(eventSamp, nTrees, 0.15, 0.5, depth);
   std::cout << "DONE. " << timer << std::endl;
 
   std::cout << "writing XML file ... " << std::flush;
