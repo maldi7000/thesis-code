@@ -1,4 +1,4 @@
-function [R,SNR,BINC] = analyze_class_bins(t,y,feat,nbins,cutval,name)
+function [R,SNR,BINE] = analyze_class_bins(t,y,feat,nbins,cutval,name)
 %ANALYZE_CLASS_BINS analyzes the classifier performance in bins of a
 %feature
 %
@@ -14,7 +14,7 @@ function [R,SNR,BINC] = analyze_class_bins(t,y,feat,nbins,cutval,name)
 %
 % R - efficiency in the bins
 % SNR - snr gain in the bins of the feature
-% BINC - the bin centers
+% BINE - the bin edges
 
 % by Thomas Madlener, 2015
 
@@ -38,7 +38,10 @@ if nargin < 6 || ~ischar(name), name = 'feature'; end
 %% main
 if calc_cut, cutval = calculate_cut(t,y,0.99); end % this should also work if there are only signal samples since only the efficiency is desired
 
-[~,e,binds] = histcounts(feat,nbins); % calculate the edges and the indices for binning the feature
+[~,e,binds] = histcounts(feat,nbins); % calculate the edges and the
+                                      % indices for binning the
+                                      % feature
+BINE = e;
 BINC = e(1:end-1) + diff(e) / 2; % calculate the bin centers from the bin edges
 [bint,biny] = get_bin_values(t,y,binds,nbins);
 [R, SNR] = calculate_bin_performance(bint,biny,cutval);

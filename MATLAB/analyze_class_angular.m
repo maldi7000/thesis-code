@@ -12,7 +12,7 @@ function [R, SNR, BINC] = analyze_class_angular(targets,inputs,outputs,cutvalue)
 %
 % R - cell-array where first entry is efficiency for phi, second for theta
 % SNR - cell-array where first entry is SNR_gain for phi, second for theta
-% BINC - cell-array where first entry is phi bin centers, second for theta
+% BINC - cell-array where first entry is phi bin edges, second for theta
 % TODO: documentation, implementation
 
 % by Thomas Madlener, 2015
