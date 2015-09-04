@@ -2,34 +2,22 @@ function [ cut ] = calculate_cut(targets,outputs,efficiency )
 %CALCULATE_CUT calculates the appropriate cut to reach a given efficiency
 %
 % TODO: DOCUMENTATION
-% targets: targtet values (binary)
-% outputs: classifier outputs
+% targets: targtet values (binary) as a vector of length M
+% outputs: classifier outputs (a NxM matrix of classifier outputs)
 % efficiency (optional, defaults to 0.99)
+% returns cut a Nx1 vector
 
 % by Thomas Madlener, 2015
 
 %% input checks
 if nargin < 2, error('not enough input arguments'), end
 if nargin < 3, efficiency = 0.99; end
-if length(targets) ~= length(outputs), error('targets and output must be of the same length'), end
-if ~isvector(targets) || ~isvector(outputs), error('targets and outputs have to be passed as vectors'), end
+if length(targets) ~= size(outputs,2), error('targets and output must be of the same length'), end
+if ~isvector(targets), error('targets have to be passed as a vector'), end
 
-[lb, ub] = calc_boundaries(outputs,targets, efficiency);
-[~,R,C] = analyze_class_out(targets,outputs,lb,ub);
-gtr = R >= efficiency;
-c = C(gtr); % get all possible cut values (yielding a good enough efficiency)
-cut = c(end); % choose the loosest cut
-end
+% sort signal outputs in descending order in every row
+y = sort(outputs(:,targets == 1), 2, 'descend');
+% return the value which has 99 % of all values above it
+cut = y(:,ceil(size(y,2) * 0.99));
 
-%% helper function
-% calculate the lower and upper boundary to be used to calculate the
-% cut value (via the analyze_class_out function)
-function [lb, ub] = calc_boundaries(y,t,r)
-    [c,e] = histcounts(y(t==1),100);
-    ind = cumsum(c) > (1 -r ) * length(y(t==1));
-    e(1) = []; % remove first entry from e to ensure that search
-               % extends to values above the actual cutvalue
-    lb = max(e(~ind));
-    if isempty(lb), lb = min(y); end % do not return an empty matrix!
-    ub = min(e(ind));
 end
